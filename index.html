@@ -4,185 +4,168 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Huntington Associates LLC</title>
-    <!-- Tailwind CSS for styling (loaded from CDN for ease of use) -->
+    <!-- Tailwind CSS: This handles all the layout automatically -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Inter for a clean, corporate look -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
-    <!-- Lucide Icons for visuals -->
+    <!-- Google Fonts: Roboto (The standard Google Sites font) -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
-        .fade-in { animation: fadeIn 1s ease-in; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        body { font-family: 'Roboto', sans-serif; }
     </style>
 </head>
-<body class="bg-slate-50 text-slate-800">
+<body class="flex flex-col min-h-screen">
 
+    <!-- ========================================= -->
     <!-- NAVIGATION BAR -->
-    <nav class="bg-white shadow-sm sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16">
-                <!-- Logo / Brand Name -->
-                <div class="flex-shrink-0 flex items-center">
-                    <span class="text-xl font-bold text-slate-900 tracking-tight">HUNTINGTON ASSOCIATES</span>
+    <!-- ========================================= -->
+    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <!-- LOGO AREA -->
+                <div class="font-bold text-xl tracking-wide text-gray-800">
+                    HUNTINGTON ASSOCIATES
                 </div>
                 
-                <!-- Desktop Menu -->
-                <div class="hidden md:flex space-x-8 items-center">
-                    <a href="#about" class="text-slate-600 hover:text-blue-600 px-3 py-2 text-sm font-medium">About Us</a>
-                    <a href="#ventures" class="text-slate-600 hover:text-blue-600 px-3 py-2 text-sm font-medium">Ventures</a>
-                    <a href="#contact" class="bg-blue-900 text-white hover:bg-blue-800 px-4 py-2 rounded-md text-sm font-medium transition">Contact</a>
-                </div>
-
-                <!-- Mobile Menu Button (Hamburger) -->
-                <div class="flex items-center md:hidden">
-                    <button onclick="toggleMenu()" class="text-slate-600 hover:text-slate-900 focus:outline-none">
-                        <i data-lucide="menu" class="h-6 w-6"></i>
-                    </button>
+                <!-- MENU LINKS -->
+                <div class="hidden md:flex space-x-8">
+                    <a href="#home" class="text-gray-600 hover:text-black font-medium">Home</a>
+                    <a href="#services" class="text-gray-600 hover:text-black font-medium">Services</a>
+                    <a href="#about" class="text-gray-600 hover:text-black font-medium">About</a>
+                    <a href="#contact" class="text-gray-600 hover:text-black font-medium">Contact</a>
                 </div>
             </div>
-        </div>
-        <!-- Mobile Menu Dropdown -->
-        <div id="mobile-menu" class="hidden md:hidden bg-white border-t">
-            <a href="#about" class="block px-4 py-2 text-base font-medium text-slate-700 hover:bg-slate-50">About Us</a>
-            <a href="#ventures" class="block px-4 py-2 text-base font-medium text-slate-700 hover:bg-slate-50">Ventures</a>
-            <a href="#contact" class="block px-4 py-2 text-base font-medium text-blue-600 hover:bg-slate-50">Contact</a>
         </div>
     </nav>
 
-    <!-- HERO SECTION: The "Generic Corporate" Identity -->
-    <!-- This section is designed to be vague but professional until you pick a niche. -->
-    <div class="relative bg-slate-900 overflow-hidden">
-        <div class="absolute inset-0">
-            <!-- Abstract background image placeholder -->
-            <img class="w-full h-full object-cover opacity-20" src=https://shelton.qscendcms.com/UploadFiles/OpeningPhotos/Original/84d61ea6-dbde-4dec-a85a-8fffcba0bf51.jpg920&q=80" alt="Corporate Architecture">
-    <!-- ABOUT SECTION -->
-    <section id="about" class="py-16 bg-white">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="lg:text-center">
-                <h2 class="text-base text-blue-600 font-semibold tracking-wide uppercase">Who are we?</h2>
-                </p>
-                <p class="mt-4 max-w-2xl text-xl text-slate-500 lg:mx-auto">
-                    Our firm is a dynamic holding company, containing small businesses that implement new, innovativce solutions in the greater Connecticut area. 
-                </p>
-            </div>
+    <!-- ========================================= -->
+    <!-- HERO HEADER (Big Image Background) -->
+    <!-- ========================================= -->
+    <header id="home" class="relative bg-gray-900 h-[500px] flex items-center justify-center text-center px-4">
+        <!-- BACKGROUND IMAGE: Change the URL inside src="..." -->
+        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1920&q=80" 
+             class="absolute inset-0 w-full h-full object-cover opacity-40" 
+             alt="Office background">
+             
+        <div class="relative z-10 max-w-4xl mx-auto">
+            <h1 class="text-4xl md:text-6xl font-bold text-white mb-6">
+                Operational Excellence.
+            </h1>
+            <p class="text-xl text-gray-200 mb-8 max-w-2xl mx-auto">
+                Huntington Associates LLC provides strategic solutions in finance, staffing, and real estate management.
+            </p>
+            <a href="#contact" class="inline-block bg-white text-gray-900 font-bold py-3 px-8 rounded hover:bg-gray-100 transition">
+                Contact Us
+            </a>
         </div>
-    </section>
+    </header>
 
-    <!-- VENTURES / MODULES SECTION -->
-    <!-- This is the "Modular" part. Copy and paste the "Card" blocks below to add/remove services. -->
-    <section id="ventures" class="py-16 bg-slate-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <h2 class="text-3xl font-bold text-slate-900 mb-12">Current Focus Areas</h2>
+    <!-- ========================================= -->
+    <!-- 3-COLUMN SERVICES (The "Modules") -->
+    <!-- ========================================= -->
+    <section id="services" class="py-16 bg-white">
+        <div class="max-w-6xl mx-auto px-4">
+            <h2 class="text-3xl font-light text-center text-gray-800 mb-12 border-b pb-4 inline-block mx-auto w-full">
+                Our Ventures
+            </h2>
             
-            <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
-
-                <!-- MODULE 1: Credit Card Processing -->
-                <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow duration-300">
-                    <div class="px-4 py-5 sm:p-6">
-                        <div class="flex items-center mb-4">
-                            <div class="bg-blue-100 rounded-md p-3">
-                                <i data-lucide="credit-card" class="h-6 w-6 text-blue-600"></i>
-                            </div>
-                            <h3 class="ml-3 text-lg font-medium text-slate-900">Payment Solutions</h3>
-                        </div>
-                        <p class="text-slate-500">
-                            Coming Soon.
-                        </p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
+                
+                <!-- CARD 1: PAYMENTS -->
+                <div class="p-4">
+                    <div class="bg-blue-50 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4">
+                        <i data-lucide="credit-card" class="text-blue-600 w-8 h-8"></i>
                     </div>
+                    <h3 class="text-xl font-bold mb-2">Payment Processing</h3>
+                    <p class="text-gray-600">
+                        Credit card processing. Coming soon.
+                    </p>
                 </div>
 
-                <!-- MODULE 2: Staffing / Temp Agency -->
-                <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow duration-300">
-                    <div class="px-4 py-5 sm:p-6">
-                        <div class="flex items-center mb-4">
-                            <div class="bg-green-100 rounded-md p-3">
-                                <i data-lucide="users" class="h-6 w-6 text-green-600"></i>
-                            </div>
-                            <h3 class="ml-3 text-lg font-medium text-slate-900">Talent Acquisition</h3>
-                        </div>
-                        <p class="text-slate-500">
-                            Coming soon.
-                        </p>
+                <!-- CARD 2: STAFFING -->
+                <div class="p-4">
+                    <div class="bg-green-50 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4">
+                        <i data-lucide="users" class="text-green-600 w-8 h-8"></i>
                     </div>
+                    <h3 class="text-xl font-bold mb-2">Staffing Solutions</h3>
+                    <p class="text-gray-600">
+                        Temporary staffing. Coming soon.
+                    </p>
                 </div>
 
-                <!-- MODULE 4: Placeholder (Hidden by default, or copy this block to add more) 
-                <div class="bg-white overflow-hidden shadow rounded-lg hover:shadow-lg transition-shadow duration-300">
-                    <div class="px-4 py-5 sm:p-6">
-                        <div class="flex items-center mb-4">
-                            <div class="bg-gray-100 rounded-md p-3">
-                                <i data-lucide="briefcase" class="h-6 w-6 text-gray-600"></i>
-                            </div>
-                            <h3 class="ml-3 text-lg font-medium text-slate-900">Future Venture</h3>
-                        </div>
-                        <p class="text-slate-500">
-                            Description of the new business line goes here.
-                        </p>
+                <!-- CARD 3: REAL ESTATE -->
+                <div class="p-4">
+                    <div class="bg-orange-50 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4">
+                        <i data-lucide="building" class="text-orange-600 w-8 h-8"></i>
                     </div>
+                    <h3 class="text-xl font-bold mb-2">Real Estate Holdings</h3>
+                    <p class="text-gray-600">
+                    
+                    </p>
                 </div>
-                -->
 
             </div>
         </div>
     </section>
 
-    <!-- CONTACT SECTION -->
-    <section id="contact" class="py-16 bg-white border-t border-slate-200">
-        <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 class="text-3xl font-bold text-slate-900">Contact Us</h2>
-            <p class="mt-4 text-lg text-slate-500">
-                Interested in partnering with us or learning more about our services?
-            </p>
-            <div class="mt-8 flex justify-center">
-                <div class="bg-slate-50 rounded-lg p-8 border border-slate-200 w-full">
-                    <div class="flex flex-col space-y-4">
-                        <div class="flex items-center justify-center space-x-3 text-slate-600">
-                            <i data-lucide="mail" class="h-5 w-5"></i>
-                            <!-- EDIT HERE: Email -->
-                            <span>nick@huntingtonassociatesllc.com</span>
-                        </div>
-                        <div class="flex items-center justify-center space-x-3 text-slate-600">
-                            <i data-lucide="map-pin" class="h-5 w-5"></i>
-                            <!-- EDIT HERE: Address -->
-                            <span>Shelton, CT (Headquarters)</span>
-                        </div>
-                    </div>
-                </div>
+    <!-- ========================================= -->
+    <!-- "ABOUT" SPLIT SECTION (Image Left, Text Right) -->
+    <!-- ========================================= -->
+    <section id="about" class="py-16 bg-gray-50">
+        <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center gap-12">
+            
+            <!-- IMAGE SIDE -->
+            <div class="w-full md:w-1/2">
+                <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=800&q=80" 
+                     alt="Meeting" 
+                     class="rounded shadow-lg w-full h-auto">
+            </div>
+
+            <!-- TEXT SIDE -->
+            <div class="w-full md:w-1/2">
+                <h2 class="text-3xl font-light text-gray-800 mb-6">Who We Are</h2>
+                <p class="text-gray-600 mb-4 text-lg">
+                    We are a diversified holding company searching for the next great opportunity.
+                </p>
+                <p class="text-gray-600">
+                   New, innovative solutions for businesses.
+                </p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ========================================= -->
+    <!-- CONTACT SECTION (Simple Gray Block) -->
+    <!-- ========================================= -->
+    <section id="contact" class="py-16 bg-white text-center">
+        <div class="max-w-2xl mx-auto px-4">
+            <h2 class="text-3xl font-light text-gray-800 mb-8">Get In Touch</h2>
+            <div class="bg-gray-100 p-8 rounded-lg">
+                <p class="text-xl font-medium text-gray-800 mb-2">Huntington Associates LLC</p>
+                <p class="text-gray-600 mb-6">Huntington, New York</p>
+                
+                <a href="mailto:info@huntingtonassociatesllc.com" class="text-blue-600 hover:text-blue-800 font-semibold text-lg flex items-center justify-center gap-2">
+                    <i data-lucide="mail" class="w-5 h-5"></i>
+                    nick@huntingtonassociatesllc.com
+                </a>
             </div>
         </div>
     </section>
 
+    <!-- ========================================= -->
     <!-- FOOTER -->
-    <footer class="bg-slate-900 py-8">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
-            <p class="text-slate-400 text-sm">
-                &copy; <span id="year"></span> Huntington Associates LLC. All rights reserved.
-            </p>
-            <div class="flex space-x-6 mt-4 md:mt-0">
-                <a href="#" class="text-slate-400 hover:text-white transition">Privacy</a>
-                <a href="#" class="text-slate-400 hover:text-white transition">Terms</a>
-            </div>
-        </div>
+    <!-- ========================================= -->
+    <footer class="bg-gray-800 text-white py-8 text-center">
+        <p class="text-sm opacity-75">
+            &copy; <span id="year">2025</span> Huntington Associates LLC
+        </p>
     </footer>
 
-    <!-- SCRIPTS -->
+    <!-- SCRIPT FOR ICONS (Do Not Edit) -->
     <script>
-        // Initialize Icons
         lucide.createIcons();
-
-        // Update Copyright Year automatically
         document.getElementById('year').textContent = new Date().getFullYear();
-
-        // Mobile Menu Toggle Logic
-        function toggleMenu() {
-            const menu = document.getElementById('mobile-menu');
-            if (menu.classList.contains('hidden')) {
-                menu.classList.remove('hidden');
-            } else {
-                menu.classList.add('hidden');
-            }
-        }
     </script>
 </body>
 </html>
