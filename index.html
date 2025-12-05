@@ -1,171 +1,114 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Huntington Associates LLC</title>
-    <!-- Tailwind CSS: This handles all the layout automatically -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Google Fonts: Roboto (The standard Google Sites font) -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <!-- Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <style>
-        body { font-family: 'Roboto', sans-serif; }
-    </style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Huntington Associates LLC</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { margin:0; font-family: 'EB Garamond', serif; background:#ffffff; color:#1a1a1a; }
+
+    /* HERO SECTION */
+    .hero {
+      height: 80vh;
+      background-image: url('https://shelton.qscendcms.com/UploadFiles/OpeningPhotos/Original/84d61ea6-dbde-4dec-a85a-8fffcba0bf51.jpg');
+      background-size: cover;
+      background-position: center;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
+      padding:20px;
+    }
+
+    .hero h1 {
+      font-size: 56px;
+      color: white;
+      text-shadow: 0px 4px 8px rgba(0,0,0,0.55);
+      margin:0;
+    }
+
+    /* WIDGET SECTION */
+    .widgets {
+      display:flex;
+      justify-content: space-around;
+      padding:60px 20px;
+      flex-wrap: wrap;
+      gap:20px;
+    }
+
+    .widget {
+      width: 300px;
+      text-align:center;
+      padding:20px;
+      border-radius:12px;
+      background:#f7f7f7;
+      box-shadow:0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .widget img {
+      width:80px;
+      height:80px;
+      object-fit:contain;
+      margin-bottom:15px;
+    }
+
+    .widget h3 { margin:5px 0; font-size:24px; }
+    .widget p { margin:0; font-size:16px; color:#333; }
+
+    /* WHO ARE WE */
+    .about {
+      padding:80px 20px;
+      text-align:center;
+      max-width:800px;
+      margin:auto;
+    }
+
+    .about h2 { font-size:36px; margin-bottom:20px; }
+    .about p { font-size:22px; line-height:1.5; }
+
+  </style>
 </head>
-<body class="flex flex-col min-h-screen">
+<body>
 
-    <!-- ========================================= -->
-    <!-- NAVIGATION BAR -->
-    <!-- ========================================= -->
-    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto px-4">
-            <div class="flex justify-between items-center h-16">
-                <!-- LOGO AREA -->
-                <div class="font-bold text-xl tracking-wide text-gray-800">
-                    HUNTINGTON ASSOCIATES
-                </div>
-                
-                <!-- MENU LINKS -->
-                <div class="hidden md:flex space-x-8">
-                    <a href="#home" class="text-gray-600 hover:text-black font-medium">Home</a>
-                    <a href="#services" class="text-gray-600 hover:text-black font-medium">Services</a>
-                    <a href="#about" class="text-gray-600 hover:text-black font-medium">About</a>
-                    <a href="#contact" class="text-gray-600 hover:text-black font-medium">Contact</a>
-                </div>
-            </div>
-        </div>
-    </nav>
+  <!-- HERO SECTION -->
+  <section class="hero">
+    <h1>Huntington Associates</h1>
+  </section>
 
-    <!-- ========================================= -->
-    <!-- HERO HEADER (Big Image Background) -->
-    <!-- ========================================= -->
-    <header id="home" class="relative bg-gray-900 h-[500px] flex items-center justify-center text-center px-4">
-        <!-- BACKGROUND IMAGE: Change the URL inside src="..." -->
-        <img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=1920&q=80" 
-             class="absolute inset-0 w-full h-full object-cover opacity-40" 
-             alt="Office background">
-             
-        <div class="relative z-10 max-w-4xl mx-auto">
-            <h1 class="text-4xl md:text-6xl font-bold text-white mb-6">
-                Operational Excellence.
-            </h1>
-            <p class="text-xl text-gray-200 mb-8 max-w-2xl mx-auto">
-                Huntington Associates LLC provides strategic solutions in finance, staffing, and real estate management.
-            </p>
-            <a href="#contact" class="inline-block bg-white text-gray-900 font-bold py-3 px-8 rounded hover:bg-gray-100 transition">
-                Contact Us
-            </a>
-        </div>
-    </header>
+  <!-- WIDGET SECTION -->
+  <section class="widgets">
 
-    <!-- ========================================= -->
-    <!-- 3-COLUMN SERVICES (The "Modules") -->
-    <!-- ========================================= -->
-    <section id="services" class="py-16 bg-white">
-        <div class="max-w-6xl mx-auto px-4">
-            <h2 class="text-3xl font-light text-center text-gray-800 mb-12 border-b pb-4 inline-block mx-auto w-full">
-                Our Ventures
-            </h2>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-10 text-center">
-                
-                <!-- CARD 1: PAYMENTS -->
-                <div class="p-4">
-                    <div class="bg-blue-50 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4">
-                        <i data-lucide="credit-card" class="text-blue-600 w-8 h-8"></i>
-                    </div>
-                    <h3 class="text-xl font-bold mb-2">Payment Processing</h3>
-                    <p class="text-gray-600">
-                        Credit card processing. Coming soon.
-                    </p>
-                </div>
+    <!-- Widget 1 -->
+    <div class="widget">
+      <img src="https://cdn-icons-png.flaticon.com/512/2331/2331949.png" alt="Credit Card Icon" />
+      <h3>Payment Processing</h3>
+      <p>Coming soon</p>
+    </div>
 
-                <!-- CARD 2: STAFFING -->
-                <div class="p-4">
-                    <div class="bg-green-50 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4">
-                        <i data-lucide="users" class="text-green-600 w-8 h-8"></i>
-                    </div>
-                    <h3 class="text-xl font-bold mb-2">Staffing Solutions</h3>
-                    <p class="text-gray-600">
-                        Temporary staffing. Coming soon.
-                    </p>
-                </div>
+    <!-- Widget 2 -->
+    <div class="widget">
+      <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="Staffing Icon" />
+      <h3>Temporary Staffing</h3>
+      <p>Coming soon</p>
+    </div>
 
-                <!-- CARD 3: REAL ESTATE -->
-                <div class="p-4">
-                    <div class="bg-orange-50 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4">
-                        <i data-lucide="building" class="text-orange-600 w-8 h-8"></i>
-                    </div>
-                    <h3 class="text-xl font-bold mb-2">Real Estate Holdings</h3>
-                    <p class="text-gray-600">
-                    
-                    </p>
-                </div>
+    <!-- Widget 3 -->
+    <div class="widget">
+      <img src="https://cdn-icons-png.flaticon.com/512/456/456212.png" alt="Handshake Icon" />
+      <h3>Private Partnerships</h3>
+      <p>Teaming up to bring your business into the next generation</p>
+    </div>
 
-            </div>
-        </div>
-    </section>
+  </section>
 
-    <!-- ========================================= -->
-    <!-- "ABOUT" SPLIT SECTION (Image Left, Text Right) -->
-    <!-- ========================================= -->
-    <section id="about" class="py-16 bg-gray-50">
-        <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center gap-12">
-            
-            <!-- IMAGE SIDE -->
-            <div class="w-full md:w-1/2">
-                <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?auto=format&fit=crop&w=800&q=80" 
-                     alt="Meeting" 
-                     class="rounded shadow-lg w-full h-auto">
-            </div>
+  <!-- ABOUT SECTION -->
+  <section class="about">
+    <h2>Who are we</h2>
+    <p>A group of young, local entrepreneurs who want to pair our innovation with your wisdom to grow your business.</p>
+  </section>
 
-            <!-- TEXT SIDE -->
-            <div class="w-full md:w-1/2">
-                <h2 class="text-3xl font-light text-gray-800 mb-6">Who We Are</h2>
-                <p class="text-gray-600 mb-4 text-lg">
-                    We are a diversified holding company searching for the next great opportunity.
-                </p>
-                <p class="text-gray-600">
-                   New, innovative solutions for businesses.
-                </p>
-            </div>
-
-        </div>
-    </section>
-
-    <!-- ========================================= -->
-    <!-- CONTACT SECTION (Simple Gray Block) -->
-    <!-- ========================================= -->
-    <section id="contact" class="py-16 bg-white text-center">
-        <div class="max-w-2xl mx-auto px-4">
-            <h2 class="text-3xl font-light text-gray-800 mb-8">Get In Touch</h2>
-            <div class="bg-gray-100 p-8 rounded-lg">
-                <p class="text-xl font-medium text-gray-800 mb-2">Huntington Associates LLC</p>
-                <p class="text-gray-600 mb-6">Huntington, New York</p>
-                
-                <a href="mailto:info@huntingtonassociatesllc.com" class="text-blue-600 hover:text-blue-800 font-semibold text-lg flex items-center justify-center gap-2">
-                    <i data-lucide="mail" class="w-5 h-5"></i>
-                    nick@huntingtonassociatesllc.com
-                </a>
-            </div>
-        </div>
-    </section>
-
-    <!-- ========================================= -->
-    <!-- FOOTER -->
-    <!-- ========================================= -->
-    <footer class="bg-gray-800 text-white py-8 text-center">
-        <p class="text-sm opacity-75">
-            &copy; <span id="year">2025</span> Huntington Associates LLC
-        </p>
-    </footer>
-
-    <!-- SCRIPT FOR ICONS (Do Not Edit) -->
-    <script>
-        lucide.createIcons();
-        document.getElementById('year').textContent = new Date().getFullYear();
-    </script>
 </body>
 </html>
