@@ -8,119 +8,216 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
-    body { margin:0; font-family: 'EB Garamond', serif; background:#ffffff; color:#1a1a1a; }
+    body { margin:0; font-family:'EB Garamond', serif; background:#ffffff; color:#1a1a1a; }
 
-    /* HERO SECTION */
+    :root{
+      --break-h: clamp(20px, 6vw, 64px);
+    }
+
+    /* HERO */
     .hero {
       height: 80vh;
-      background-image: url('https://shelton.qscendcms.com/UploadFiles/OpeningPhotos/Original/84d61ea6-dbde-4dec-a85a-8fffcba0bf51.jpg');
-      background-size: cover;
-      background-position: center;
+      position: relative;
       display:flex;
       align-items:center;
       justify-content:center;
       text-align:center;
       padding:20px;
+      overflow:hidden;
     }
-
-    .hero h1 {
-      font-size: 56px;
-      color: white;
-      text-shadow: 0px 4px 8px rgba(0,0,0,0.55);
+    .hero-bg{
+      position:absolute; inset:0;
+      background-image:url('https://shelton.qscendcms.com/UploadFiles/OpeningPhotos/Original/84d61ea6-dbde-4dec-a85a-8fffcba0bf51.jpg');
+      background-size:cover; background-position:center;
+      will-change:transform,opacity;
+    }
+    .hero-content{ position:relative; z-index:1; }
+    .hero h1{
+      font-size:56px; color:#fff;
+      text-shadow:0 4px 8px rgba(0,0,0,.55);
       margin:0;
     }
 
-    /* WIDGET SECTION */
-    .widgets {
-      display:flex;
-      justify-content: space-around;
-      padding:60px 20px;
-      flex-wrap: wrap;
-      gap:20px;
-    }
+    .image-break{ height:var(--break-h); background:#fff; }
 
-    .widget {
-      width: 300px;
+    /* OVERLAY SECTIONS */
+    .about{
+      padding:100px 20px;
       text-align:center;
-      padding:20px;
-      border-radius:12px;
-      background:#f7f7f7;
-      box-shadow:0 2px 8px rgba(0,0,0,0.1);
+      position:relative;
+      overflow:hidden;
     }
-
-    .widget img {
-      width:80px;
-      height:80px;
-      object-fit:contain;
-      margin-bottom:15px;
-    }
-
-    .widget h3 { margin:5px 0; font-size:24px; }
-    .widget p { margin:0; font-size:16px; color:#333; }
-
-    /* WHO ARE WE */
-    .about {
-      padding:80px 20px;
-      text-align:center;
+    .about-inner{
       max-width:800px;
       margin:auto;
+      position:relative;
+      z-index:2;
+    }
+    .about-bg{
+      position:absolute; inset:0;
+      background-size:cover;
+      background-position:center;
+      will-change:transform,opacity;
+    }
+    .about-bg::after{
+      content:""; position:absolute; inset:0;
+      background:rgba(0,0,0,.55);
     }
 
-    .about h2 { font-size:36px; margin-bottom:20px; }
-    .about p { font-size:22px; line-height:1.5; }
+    .overlay{
+      color:#fff;
+      will-change:opacity,transform;
+      opacity:.01;
+      transform:translateY(18px);
+    }
+    .overlay h2{
+      font-size:36px; margin-bottom:20px;
+      text-shadow:0 3px 6px rgba(0,0,0,.6);
+    }
+    .overlay p{
+      font-size:22px; line-height:1.5;
+      color:rgba(255,255,255,.95);
+      text-shadow:0 2px 6px rgba(0,0,0,.6);
+      margin:0 0 24px;
+    }
 
+    /* Industry list */
+    .industry-list{
+      list-style:none; padding:0; margin:0 auto;
+      max-width:520px; text-align:left;
+      font-size:20px; line-height:1.6;
+    }
+    .industry-list li{
+      margin:8px 0; padding-left:14px; position:relative;
+    }
+    .industry-list li::before{
+      content:"—"; position:absolute; left:0;
+      color:rgba(255,255,255,.85);
+    }
+
+    footer{
+      text-align:center; padding:20px;
+      background:#f2f2f2; font-size:16px; color:#444;
+    }
+
+    @media(max-width:700px){
+      .hero{ height:72vh; }
+      .hero h1{ font-size:46px; }
+      .about{ padding:84px 18px; }
+      .industry-list{ font-size:18px; }
+    }
   </style>
 </head>
 <body>
 
-  <!-- HERO SECTION -->
-  <section class="hero">
-    <h1>Huntington Associates</h1>
-  </section>
-
-  <!-- WIDGET SECTION -->
-  <section class="widgets">
-
-    <!-- Widget 1 -->
-    <div class="widget">
-      <img src="https://cdn-icons-png.flaticon.com/512/2331/2331949.png" alt="Credit Card Icon" />
-      <h3>Payment Processing</h3>
-      <p>Coming soon</p>
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="hero-bg" id="heroBg"></div>
+    <div class="hero-content">
+      <h1>Huntington Associates</h1>
     </div>
+  </section>
 
-    <!-- Widget 2 -->
-    <div class="widget">
-      <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="Staffing Icon" />
-      <h3>Temporary Staffing</h3>
-      <p>Coming soon</p>
+  <div class="image-break"></div>
+
+  <!-- WHO ARE WE -->
+  <section class="about overlay" id="aboutOverlay">
+    <div class="about-bg"
+      style="background-image:url('https://connecticuthistory.org/wp-content/uploads/sites/6/2012/02/SheltonHousatonic-RiverDam.jpg');"></div>
+    <div class="about-inner">
+      <h2>Who are we</h2>
+      <p>
+        A group of young, local entrepreneurs who want to pair our innovation
+        with your wisdom to grow your business.
+      </p>
     </div>
+  </section>
 
-    <!-- Widget 3 -->
-    <div class="widget">
-      <img src="https://cdn-icons-png.flaticon.com/512/456/456212.png" alt="Handshake Icon" />
-      <h3>Private Partnerships</h3>
-      <p>Teaming up to bring your business into the next generation</p>
+  <div class="image-break"></div>
+
+  <!-- WHAT WE OFFER -->
+  <section class="about overlay" id="offerOverlay">
+    <div class="about-bg"
+      style="background-image:url('http://ww2.hdnux.com/photos/41/55/22/8836277/3/rawImage.jpg');"></div>
+    <div class="about-inner">
+      <h2>What we offer</h2>
+      <p>
+        We provide temporary staffing to a wide range of industries across the greater Connecticut area.
+        We strive to be loyal partners to our clients and build relationships over a long period of time.
+      </p>
+      <h3 style="font-size:26px; margin-bottom:14px;">Industries we support</h3>
+      <ul class="industry-list">
+        <li>Manufacturing & Light Industrial</li>
+        <li>Warehousing & Distribution</li>
+        <li>Food Production & Packaging</li>
+        <li>Logistics & Transportation Support</li>
+        <li>Construction Support & Trades Assistance</li>
+        <li>Small and Mid-Sized Local Businesses</li>
+      </ul>
     </div>
-
   </section>
 
-  <!-- ABOUT SECTION -->
-  <section class="about">
-    <h2>Who are we</h2>
-    <p>A group of young, local entrepreneurs who want to pair our innovation with your wisdom to grow your business.</p>
+  <div class="image-break"></div>
+
+  <!-- CONTACT -->
+  <section class="about overlay" id="contactOverlay">
+    <div class="about-bg"
+      style="background-image:url('https://images.squarespace-cdn.com/content/v1/612115a6a245cb29c07a85a8/da3add36-ed68-4ec7-afeb-a64d71e54a51/shelton-ct-train-trestle-bridge-sunrise.jpg');"></div>
+    <div class="about-inner">
+      <h2>Contact</h2>
+      <p>Email: <a style="color:#fff;" href="mailto:nick@huntingtonassociatesllc.com">nick@huntingtonassociatesllc.com</a></p>
+      <p>Shelton, CT 06484</p>
+    </div>
   </section>
 
-  <!-- CONTACT SECTION -->
-  <section class="about" style="padding-top:40px; padding-bottom:80px;">
-    <h2>Contact</h2>
-    <p style="font-size:20px;">Email: <a href="mailto:nick@huntingtonassociatesllc.com">nick@huntingtonassociatesllc.com</a></p>
-    <p style="font-size:20px;">Shelton, CT 06484</p>
-  </section>
-
-  <!-- FOOTER BAR -->
-  <footer style="text-align:center; padding:20px; background:#f2f2f2; font-size:16px; color:#444;">
+  <footer>
     © 2025 Huntington Associates LLC. All rights reserved.
   </footer>
+
+  <script>
+    (function(){
+      const hero = document.getElementById('hero');
+      const heroBg = document.getElementById('heroBg');
+
+      const sections = [
+        document.getElementById('aboutOverlay'),
+        document.getElementById('offerOverlay'),
+        document.getElementById('contactOverlay')
+      ];
+
+      const clamp = (n,min,max)=>Math.max(min,Math.min(max,n));
+
+      function update(){
+        const vh = window.innerHeight || document.documentElement.clientHeight;
+        const scrollBottom = window.scrollY + vh;
+        const docHeight = document.documentElement.scrollHeight;
+
+        // Hero drop-out
+        const heroRect = hero.getBoundingClientRect();
+        const heroP = clamp((-heroRect.top)/(heroRect.height*.85),0,1);
+        heroBg.style.opacity = 1-heroP;
+        heroBg.style.transform = `translateY(${heroP*70}px)`;
+
+        sections.forEach(sec=>{
+          const r = sec.getBoundingClientRect();
+
+          let p = clamp((vh*0.92 - r.top)/(vh*0.45),0,1);
+
+          // FORCE last section fully solid at bottom of page
+          if (sec.id === 'contactOverlay' && scrollBottom >= docHeight - 4) {
+            p = 1;
+          }
+
+          sec.style.opacity = p;
+          sec.style.transform = `translateY(${(1-p)*18}px)`;
+        });
+      }
+
+      update();
+      window.addEventListener('scroll', update, {passive:true});
+      window.addEventListener('resize', update);
+    })();
+  </script>
 
 </body>
 </html>
