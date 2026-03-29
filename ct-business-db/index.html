@@ -1193,8 +1193,8 @@ async function openDetail(id) {
   if (biz.sf && !isCTEntity(biz.sf)) badges.push(`<span class="badge badge-orange" title="Foreign entity — formed outside CT">Foreign Entity</span>`);
   $('d-meta').innerHTML = badges.join('');
 
-  // Build address string
-  const addrParts = [biz.ad, biz.ci ? toTitleCase(biz.ci) : '', biz.sa, biz.zp].filter(Boolean);
+  // Build address string (sr = street, ci = city, sa = state, zp = zip)
+  const addrParts = [biz.sr, biz.ci ? toTitleCase(biz.ci) : '', biz.sa, biz.zp].filter(Boolean);
   const addrStr = addrParts.join(', ');
 
   // Filing velocity
@@ -1205,6 +1205,7 @@ async function openDetail(id) {
     { label: 'Business Type',  val: biz.bt },
     { label: 'Status',         val: biz.st },
     { label: 'Date Registered', val: fmtDate(biz.dr) },
+    { label: 'Annual Report Due', val: fmtDate(biz.ar) },
     { label: 'State of Formation', val: biz.sf },
     { label: 'Address', val: addrStr, map: addrStr, copy: true },
     { label: 'Email', val: biz.em, copy: true },
@@ -1214,12 +1215,25 @@ async function openDetail(id) {
 
   $('d-grid').innerHTML = fields.map(f => {
     let valHtml = `<span>${esc(f.val)}</span>`;
-    if (f.copy) valHtml += `<button class="copy-btn" onclick="copyText('${esc(f.val)}')" title="Copy">⎘</button>`;
+    if (f.copy) valHtml += `<button class="copy-btn" onclick="copyText('${esc(f.val)}')" title="Copy">⍘</button>`;
     if (f.map)  valHtml += `<a class="map-link" href="${mapsLink(f.map)}" target="_blank" rel="noopener" title="Open in Google Maps">📍 Map</a>`;
     let extra = '';
     if (f.velocity) extra = renderVelocityBar(f.velocity);
     return `<div><div class="detail-field-label">${esc(f.label)}</div><div class="detail-field-value">${valHtml}</div>${extra}</div>`;
   }).join('');
+
+  // CT SOS filing link
+  const ctSosName = encodeURIComponent(biz.n || '');
+  const ctSosUrl = `https://service.ct.gov/business/s/onlinebusinesssearch?language=en_US&searchTerm=${ctSosName}`;
+  const ctSosHtml = `
+    <div style="margin-top:16px;padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <span style="font-size:13px;color:var(--text2);flex:1">View official filings, articles of incorporation &amp; annual reports:</span>
+      <a href="${ctSosUrl}" target="_blank" rel="noopener"
+         style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:var(--accent);color:#fff;border-radius:6px;font-size:13px;font-weight:500;text-decoration:none">
+        🏙️ CT Secretary of State
+      </a>
+    </div>`;
+  $('d-grid').insertAdjacentHTML('afterend', ctSosHtml);
 
   // Spinners
   const spinner = `<div class="loading-detail"><span class="spinner"></span>Loading detail data…</div>`;
@@ -1272,7 +1286,19 @@ function renderPrincipals(biz, bizId) {
 
   const rows = prins.map(p => {
     const name = p.n || '—';
-    const addr = [p.ad, p.ci ? toTitleCase(p.ci) : '', p.sa, p.zp].filter(Boolean).join(', ');
+    // Business address (ba/bc/bs/bz) and residence address (ra/rc/rs/rz)
+    const bizAddr  = [p.ba, p.bc ? toTitleCase(p.bc) : '', p.bs, p.bz].filter(Boolean).join(', ');
+    const resAddr  = [p.ra, p.rc ? toTitleCase(p.rc) : '', p.rs, p.rz].filter(Boolean).join(', ');
+    // Show both if they differ, otherwise just one
+    const addrHtml = (() => {
+      if (bizAddr && resAddr && bizAddr.toLowerCase() !== resAddr.toLowerCase()) {
+        return `<div><span style="font-size:11px;color:var(--text3);font-weight:600">BIZ</span> ${esc(bizAddr)} <a href="${mapsLink(bizAddr)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">📍</a></div>
+                <div style="margin-top:4px"><span style="font-size:11px;color:var(--text3);font-weight:600">RES</span> ${esc(resAddr)} <a href="${mapsLink(resAddr)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">📍</a></div>`;
+      }
+      const addr = bizAddr || resAddr;
+      return addr ? `${esc(addr)} <a href="${mapsLink(addr)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">📍 Map</a>` : '—';
+    })();
+
     const normName = (p.n||'').trim().toLowerCase();
     const otherBizIds = OWNER_INDEX[normName] ? [...OWNER_INDEX[normName]].filter(id => id !== bizId) : [];
     const networkCount = otherBizIds.length;
@@ -1296,19 +1322,15 @@ function renderPrincipals(biz, bizId) {
       const otherBizList = otherBizIds.map(oid => {
         const ob = ALL_MAP[oid];
         if (!ob) return '';
-        return `<div class="owner-biz-link" onclick="openDetail('${esc(oid)}')">${esc(ob.n||oid)}<span class="owner-biz-meta"> — ${esc(ob.bt||'')} · ${esc(toTitleCase(ob.ci||''))}</span></div>`;
+        return `<div class="owner-biz-link" onclick="openDetail('${esc(oid)}')}">${esc(ob.n||oid)}<span class="owner-biz-meta"> — ${esc(ob.bt||'')} · ${esc(toTitleCase(ob.ci||''))}</span></div>`;
       }).join('');
       networkHtml = `
-        <button class="network-badge" onclick="togglePanel('${panelId}')">🔗 ${networkCount} other business${networkCount>1?'es':''}</button>
+        <button class="network-badge" onclick="togglePanel('${panelId}')}">🔗 ${networkCount} other business${networkCount>1?'es':''}</button>
         <div class="owner-panel" id="${panelId}" style="display:none">
           <div class="owner-panel-title">${esc(name)} is also on file for (${networkCount} total):</div>
           ${otherBizList}
         </div>`;
     }
-
-    const addrMapHtml = addr
-      ? `<a href="${mapsLink(addr)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">📍 Map</a>`
-      : '';
 
     return `<tr>
       <td style="max-width:none;white-space:normal">
@@ -1317,9 +1339,7 @@ function renderPrincipals(biz, bizId) {
         ${networkHtml}
       </td>
       <td>${esc(p.d||'—')}</td>
-      <td style="max-width:none;white-space:normal">
-        ${esc(addr||'—')} ${addrMapHtml}
-      </td>
+      <td style="max-width:none;white-space:normal">${addrHtml}</td>
     </tr>`;
   }).join('');
 
