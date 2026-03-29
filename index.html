@@ -8,107 +8,239 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
+    *, *::before, *::after { box-sizing: border-box; }
     body { margin:0; font-family:'EB Garamond', serif; background:#ffffff; color:#1a1a1a; }
 
     :root{
       --break-h: clamp(20px, 6vw, 64px);
+      --nav-h: 56px;
     }
 
-    /* HERO */
+    /* ─── NAVIGATION ─────────────────────────────────────────────── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 100;
+      height: var(--nav-h);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 32px;
+      background: rgba(10, 10, 10, 0.72);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+      transition: background 0.3s;
+    }
+    .nav-brand {
+      font-size: 18px;
+      font-weight: 600;
+      color: #fff;
+      text-decoration: none;
+      letter-spacing: 0.02em;
+      white-space: nowrap;
+    }
+    .nav-links {
+      display: flex;
+      gap: 8px;
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    .nav-links a {
+      display: block;
+      padding: 6px 16px;
+      font-size: 16px;
+      color: rgba(255,255,255,0.82);
+      text-decoration: none;
+      border-radius: 4px;
+      transition: color 0.2s, background 0.2s;
+      letter-spacing: 0.01em;
+    }
+    .nav-links a:hover,
+    .nav-links a.active {
+      color: #fff;
+      background: rgba(255,255,255,0.12);
+    }
+
+    /* ─── HERO ────────────────────────────────────────────────────── */
     .hero {
       height: 80vh;
       position: relative;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      text-align:center;
-      padding:20px;
-      overflow:hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+      overflow: hidden;
+      padding-top: var(--nav-h);
     }
-    .hero-bg{
-      position:absolute; inset:0;
-      background-image:url('https://shelton.qscendcms.com/UploadFiles/OpeningPhotos/Original/84d61ea6-dbde-4dec-a85a-8fffcba0bf51.jpg');
-      background-size:cover; background-position:center;
-      will-change:transform,opacity;
+    .hero-bg {
+      position: absolute; inset: 0;
+      background-image: url('https://shelton.qscendcms.com/UploadFiles/OpeningPhotos/Original/84d61ea6-dbde-4dec-a85a-8fffcba0bf51.jpg');
+      background-size: cover; background-position: center;
+      will-change: transform, opacity;
     }
-    .hero-content{ position:relative; z-index:1; }
-    .hero h1{
-      font-size:56px; color:#fff;
-      text-shadow:0 4px 8px rgba(0,0,0,.55);
-      margin:0;
-    }
-
-    .image-break{ height:var(--break-h); background:#fff; }
-
-    /* OVERLAY SECTIONS */
-    .about{
-      padding:100px 20px;
-      text-align:center;
-      position:relative;
-      overflow:hidden;
-    }
-    .about-inner{
-      max-width:800px;
-      margin:auto;
-      position:relative;
-      z-index:2;
-    }
-    .about-bg{
-      position:absolute; inset:0;
-      background-size:cover;
-      background-position:center;
-      will-change:transform,opacity;
-    }
-    .about-bg::after{
-      content:""; position:absolute; inset:0;
-      background:rgba(0,0,0,.55);
+    .hero-content { position: relative; z-index: 1; }
+    .hero h1 {
+      font-size: 56px; color: #fff;
+      text-shadow: 0 4px 8px rgba(0,0,0,.55);
+      margin: 0;
     }
 
-    .overlay{
-      color:#fff;
-      will-change:opacity,transform;
-      opacity:.01;
-      transform:translateY(18px);
+    .image-break { height: var(--break-h); background: #fff; }
+
+    /* ─── OVERLAY SECTIONS ────────────────────────────────────────── */
+    .about {
+      padding: 100px 20px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
     }
-    .overlay h2{
-      font-size:36px; margin-bottom:20px;
-      text-shadow:0 3px 6px rgba(0,0,0,.6);
+    .about-inner {
+      max-width: 800px;
+      margin: auto;
+      position: relative;
+      z-index: 2;
     }
-    .overlay p{
-      font-size:22px; line-height:1.5;
-      color:rgba(255,255,255,.95);
-      text-shadow:0 2px 6px rgba(0,0,0,.6);
-      margin:0 0 24px;
+    .about-bg {
+      position: absolute; inset: 0;
+      background-size: cover;
+      background-position: center;
+      will-change: transform, opacity;
+    }
+    .about-bg::after {
+      content: ""; position: absolute; inset: 0;
+      background: rgba(0,0,0,.55);
+    }
+
+    .overlay {
+      color: #fff;
+      will-change: opacity, transform;
+      opacity: .01;
+      transform: translateY(18px);
+    }
+    .overlay h2 {
+      font-size: 36px; margin-bottom: 20px;
+      text-shadow: 0 3px 6px rgba(0,0,0,.6);
+    }
+    .overlay p {
+      font-size: 22px; line-height: 1.5;
+      color: rgba(255,255,255,.95);
+      text-shadow: 0 2px 6px rgba(0,0,0,.6);
+      margin: 0 0 24px;
     }
 
     /* Industry list */
-    .industry-list{
-      list-style:none; padding:0; margin:0 auto;
-      max-width:520px; text-align:left;
-      font-size:20px; line-height:1.6;
+    .industry-list {
+      list-style: none; padding: 0; margin: 0 auto;
+      max-width: 520px; text-align: left;
+      font-size: 20px; line-height: 1.6;
     }
-    .industry-list li{
-      margin:8px 0; padding-left:14px; position:relative;
+    .industry-list li {
+      margin: 8px 0; padding-left: 14px; position: relative;
     }
-    .industry-list li::before{
-      content:"—"; position:absolute; left:0;
-      color:rgba(255,255,255,.85);
-    }
-
-    footer{
-      text-align:center; padding:20px;
-      background:#f2f2f2; font-size:16px; color:#444;
+    .industry-list li::before {
+      content: "—"; position: absolute; left: 0;
+      color: rgba(255,255,255,.85);
     }
 
+    /* ─── PROJECTS SECTION ────────────────────────────────────────── */
+    #projects {
+      scroll-margin-top: var(--nav-h);
+    }
+    .projects-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+      justify-content: center;
+      margin-top: 32px;
+    }
+    .project-card {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 10px;
+      padding: 28px 32px;
+      max-width: 420px;
+      width: 100%;
+      text-align: left;
+      transition: background 0.2s, border-color 0.2s, transform 0.2s;
+      text-decoration: none;
+      color: inherit;
+    }
+    .project-card:hover {
+      background: rgba(255,255,255,0.14);
+      border-color: rgba(255,255,255,0.35);
+      transform: translateY(-3px);
+    }
+    .project-card-icon {
+      font-size: 28px;
+      line-height: 1;
+    }
+    .project-card-title {
+      font-size: 22px;
+      font-weight: 600;
+      color: #fff;
+      text-shadow: 0 2px 6px rgba(0,0,0,.5);
+      margin: 0;
+    }
+    .project-card-desc {
+      font-size: 17px;
+      color: rgba(255,255,255,0.85);
+      text-shadow: 0 1px 4px rgba(0,0,0,.5);
+      margin: 0;
+      line-height: 1.5;
+    }
+    .project-card-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+      font-size: 15px;
+      color: rgba(255,255,255,0.65);
+      transition: color 0.2s;
+    }
+    .project-card:hover .project-card-cta {
+      color: #fff;
+    }
+    .project-card-cta::after {
+      content: "→";
+    }
+
+    /* ─── FOOTER ──────────────────────────────────────────────────── */
+    footer {
+      text-align: center; padding: 20px;
+      background: #f2f2f2; font-size: 16px; color: #444;
+    }
+
+    /* ─── RESPONSIVE ──────────────────────────────────────────────── */
     @media(max-width:700px){
-      .hero{ height:72vh; }
-      .hero h1{ font-size:46px; }
-      .about{ padding:84px 18px; }
-      .industry-list{ font-size:18px; }
+      .hero { height: 72vh; }
+      .hero h1 { font-size: 46px; }
+      .about { padding: 84px 18px; }
+      .industry-list { font-size: 18px; }
+      nav { padding: 0 18px; }
+      .nav-brand { font-size: 15px; }
+      .nav-links a { padding: 6px 10px; font-size: 15px; }
+      .project-card { padding: 22px 20px; }
     }
   </style>
 </head>
 <body>
+
+  <!-- NAVIGATION -->
+  <nav id="mainNav">
+    <a class="nav-brand" href="#hero">Huntington Associates</a>
+    <ul class="nav-links">
+      <li><a href="#hero" data-section="hero">Home</a></li>
+      <li><a href="#projects" data-section="projects">Projects</a></li>
+      <li><a href="#contactOverlay" data-section="contactOverlay">Contact</a></li>
+    </ul>
+  </nav>
 
   <!-- HERO -->
   <section class="hero" id="hero">
@@ -147,13 +279,37 @@
       </p>
       <h3 style="font-size:26px; margin-bottom:14px;">Industries we support</h3>
       <ul class="industry-list">
-        <li>Manufacturing & Light Industrial</li>
-        <li>Warehousing & Distribution</li>
-        <li>Food Production & Packaging</li>
-        <li>Logistics & Transportation Support</li>
-        <li>Construction Support & Trades Assistance</li>
+        <li>Manufacturing &amp; Light Industrial</li>
+        <li>Warehousing &amp; Distribution</li>
+        <li>Food Production &amp; Packaging</li>
+        <li>Logistics &amp; Transportation Support</li>
+        <li>Construction Support &amp; Trades Assistance</li>
         <li>Small and Mid-Sized Local Businesses</li>
       </ul>
+    </div>
+  </section>
+
+  <div class="image-break"></div>
+
+  <!-- PROJECTS -->
+  <section class="about overlay" id="projects">
+    <div class="about-bg"
+      style="background-image:url('https://images.squarespace-cdn.com/content/v1/612115a6a245cb29c07a85a8/da3add36-ed68-4ec7-afeb-a64d71e54a51/shelton-ct-train-trestle-bridge-sunrise.jpg');"></div>
+    <div class="about-inner">
+      <h2>Projects</h2>
+      <p>Tools and resources we've built for the Connecticut business community.</p>
+      <div class="projects-grid">
+        <a class="project-card" href="https://racingman123.github.io/huntingtonassociatesllc-site/ct-business-db-static/" target="_blank" rel="noopener noreferrer">
+          <div class="project-card-icon">🏢</div>
+          <h3 class="project-card-title">CT Business Database</h3>
+          <p class="project-card-desc">
+            A searchable database of every active business registered in Connecticut —
+            including owners, registered agents, and UCC lien filings sourced from the
+            CT Secretary of State.
+          </p>
+          <span class="project-card-cta">Open database</span>
+        </a>
+      </div>
     </div>
   </section>
 
@@ -171,50 +327,95 @@
   </section>
 
   <footer>
-    © 2026 Huntington Associates LLC. All rights reserved.
+    &copy; 2026 Huntington Associates LLC. All rights reserved.
   </footer>
 
   <script>
     (function(){
-      const hero = document.getElementById('hero');
-      const heroBg = document.getElementById('heroBg');
+      const hero    = document.getElementById('hero');
+      const heroBg  = document.getElementById('heroBg');
 
       const sections = [
         document.getElementById('aboutOverlay'),
         document.getElementById('offerOverlay'),
+        document.getElementById('projects'),
         document.getElementById('contactOverlay')
       ];
 
-      const clamp = (n,min,max)=>Math.max(min,Math.min(max,n));
+      const clamp = (n,min,max) => Math.max(min, Math.min(max, n));
 
+      /* ── Scroll-driven fade / parallax ── */
       function update(){
-        const vh = window.innerHeight || document.documentElement.clientHeight;
+        const vh         = window.innerHeight || document.documentElement.clientHeight;
         const scrollBottom = window.scrollY + vh;
-        const docHeight = document.documentElement.scrollHeight;
+        const docHeight  = document.documentElement.scrollHeight;
 
         // Hero drop-out
         const heroRect = hero.getBoundingClientRect();
-        const heroP = clamp((-heroRect.top)/(heroRect.height*.85),0,1);
-        heroBg.style.opacity = 1-heroP;
-        heroBg.style.transform = `translateY(${heroP*70}px)`;
+        const heroP    = clamp((-heroRect.top) / (heroRect.height * .85), 0, 1);
+        heroBg.style.opacity   = 1 - heroP;
+        heroBg.style.transform = `translateY(${heroP * 70}px)`;
 
-        sections.forEach(sec=>{
+        sections.forEach(sec => {
           const r = sec.getBoundingClientRect();
+          let p   = clamp((vh * 0.92 - r.top) / (vh * 0.45), 0, 1);
 
-          let p = clamp((vh*0.92 - r.top)/(vh*0.45),0,1);
-
-          // FORCE last section fully solid at bottom of page
+          // Force last section fully solid at bottom of page
           if (sec.id === 'contactOverlay' && scrollBottom >= docHeight - 4) {
             p = 1;
           }
 
-          sec.style.opacity = p;
-          sec.style.transform = `translateY(${(1-p)*18}px)`;
+          sec.style.opacity   = p;
+          sec.style.transform = `translateY(${(1 - p) * 18}px)`;
+        });
+
+        updateActiveNav();
+      }
+
+      /* ── Active nav link highlighting ── */
+      const navLinks = document.querySelectorAll('.nav-links a[data-section]');
+
+      function updateActiveNav(){
+        const scrollMid = window.scrollY + window.innerHeight / 2;
+        let active = 'hero';
+
+        // Determine which section occupies the middle of the viewport
+        ['hero','aboutOverlay','offerOverlay','projects','contactOverlay'].forEach(id => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          const top = el.getBoundingClientRect().top + window.scrollY;
+          if (scrollMid >= top) active = id;
+        });
+
+        // Map section id → nav data-section value
+        const sectionToNav = {
+          hero:           'hero',
+          aboutOverlay:   'hero',
+          offerOverlay:   'hero',
+          projects:       'projects',
+          contactOverlay: 'contactOverlay'
+        };
+
+        navLinks.forEach(a => {
+          a.classList.toggle('active', a.dataset.section === sectionToNav[active]);
         });
       }
 
+      /* ── Smooth scroll for nav links ── */
+      document.querySelectorAll('a[href^="#"]').forEach(a => {
+        a.addEventListener('click', e => {
+          const target = document.querySelector(a.getAttribute('href'));
+          if (!target) return;
+          e.preventDefault();
+          const navH = parseInt(getComputedStyle(document.documentElement)
+                        .getPropertyValue('--nav-h')) || 56;
+          const top  = target.getBoundingClientRect().top + window.scrollY - navH;
+          window.scrollTo({ top, behavior: 'smooth' });
+        });
+      });
+
       update();
-      window.addEventListener('scroll', update, {passive:true});
+      window.addEventListener('scroll', update, { passive: true });
       window.addEventListener('resize', update);
     })();
   </script>
