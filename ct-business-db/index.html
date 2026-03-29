@@ -27,8 +27,8 @@
       --nav-h:     56px;
       --sidebar-w: 270px;
     }
-    html { scroll-behavior: smooth; }
-    body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; min-height: 100vh; }
+    html { scroll-behavior: smooth; overscroll-behavior: none; }
+    body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; min-height: 100vh; overscroll-behavior: none; }
     a { color: var(--accent); text-decoration: none; }
     button { cursor: pointer; font-family: inherit; }
     #app { display: flex; flex-direction: column; min-height: 100vh; }
@@ -43,7 +43,7 @@
     .loading-sub { font-size: 11px; color: var(--text3); }
 
     /* Top Nav */
-    #topnav { position: sticky; top: 0; z-index: 100; height: var(--nav-h); background: rgba(13,17,23,0.96); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px; gap: 16px; }
+    #topnav { position: sticky; top: 0; z-index: 100; height: var(--nav-h); background: rgba(13,17,23,0.96); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 16px; gap: 12px; }
     .nav-brand { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; white-space: nowrap; }
     .nav-brand span { color: var(--accent); }
     .nav-tabs { display: flex; gap: 2px; flex: 1; }
@@ -54,10 +54,15 @@
     .nav-meta { font-size: 12px; color: var(--text3); white-space: nowrap; }
     .kbd-hint { font-size: 11px; color: var(--text3); white-space: nowrap; }
     .kbd { display: inline-block; padding: 1px 5px; border: 1px solid var(--border2); border-radius: 3px; font-size: 10px; color: var(--text3); background: var(--bg3); }
+    /* Sidebar toggle button (mobile only) */
+    #sidebar-toggle { display: none; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg3); color: var(--text2); font-size: 13px; font-weight: 500; white-space: nowrap; }
+    #sidebar-toggle:hover { color: var(--text); }
 
     /* Layout */
     #main { display: flex; flex: 1; }
     #sidebar { width: var(--sidebar-w); flex-shrink: 0; background: var(--bg2); border-right: 1px solid var(--border); padding: 16px 12px; position: sticky; top: var(--nav-h); height: calc(100vh - var(--nav-h)); overflow-y: auto; }
+    /* Sidebar overlay (mobile) */
+    #sidebar-overlay { display: none; position: fixed; inset: 0; z-index: 199; background: rgba(0,0,0,0.6); }
     .sidebar-label { font-size: 11px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 10px; padding: 0 8px; }
     .filter-group { margin-bottom: 12px; }
     .filter-label { font-size: 12px; color: var(--text2); margin-bottom: 4px; display: block; }
@@ -78,6 +83,79 @@
 
     /* Content */
     #content { flex: 1; padding: 24px; overflow-x: hidden; min-width: 0; }
+
+    /* ── Mobile responsive ──────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      :root { --nav-h: 52px; }
+
+      /* Nav: hide badge/meta/kbd on small screens */
+      .nav-badge, .nav-meta, .kbd-hint { display: none; }
+      #topnav { padding: 0 12px; gap: 8px; }
+      .nav-tab { padding: 5px 10px; font-size: 12px; }
+      #sidebar-toggle { display: flex; }
+      #sidebar-close { display: block !important; }
+
+      /* Sidebar becomes a slide-in drawer */
+      #sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100vh;
+        z-index: 200;
+        transform: translateX(-100%);
+        transition: transform 0.25s ease;
+        width: min(var(--sidebar-w), 85vw);
+        padding-top: calc(var(--nav-h) + 12px);
+        box-shadow: 4px 0 24px rgba(0,0,0,0.5);
+      }
+      #sidebar.open {
+        transform: translateX(0);
+      }
+      #sidebar-overlay.open {
+        display: block;
+      }
+
+      /* Content takes full width */
+      #content { padding: 16px 12px; }
+
+      /* Tables scroll horizontally */
+      .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+      /* Detail grid single column */
+      .detail-grid { grid-template-columns: 1fr; }
+
+      /* Stats grid 2-col on mobile */
+      .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .stat-value { font-size: 22px; }
+
+      /* Charts stack */
+      .charts-grid { grid-template-columns: 1fr; }
+
+      /* Search header stacks */
+      .search-header { flex-direction: column; align-items: stretch; gap: 8px; }
+      .search-box-wrap { min-width: unset; }
+
+      /* People search controls stack */
+      .people-controls { flex-direction: column; }
+
+      /* Detail header */
+      .detail-name { font-size: 18px; }
+
+      /* Tab buttons scroll horizontally */
+      .tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; flex-wrap: nowrap; }
+      .tab-btn { white-space: nowrap; flex-shrink: 0; }
+
+      /* Owner panel full width */
+      .owner-panel { margin-left: 0; }
+
+      /* Loading bar narrower */
+      .loading-bar-track { width: 280px; }
+    }
+
+    @media (max-width: 400px) {
+      .stats-grid { grid-template-columns: 1fr; }
+      .nav-tab { padding: 5px 8px; font-size: 11px; }
+    }
     .page { display: none; }
     .page.active { display: block; }
 
@@ -241,13 +319,19 @@
       <button class="nav-tab" onclick="showPage('search')">Search</button>
       <button class="nav-tab" onclick="showPage('people')">People Search</button>
     </div>
+    <button id="sidebar-toggle" onclick="toggleSidebar()">
+      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      Filters
+    </button>
     <span class="nav-badge" id="nav-count">—</span>
     <span class="nav-meta" id="nav-meta"></span>
     <span class="kbd-hint"><kbd class="kbd">/</kbd> search &nbsp; <kbd class="kbd">Esc</kbd> back</span>
   </nav>
 
+  <div id="sidebar-overlay" onclick="closeSidebar()"></div>
   <div id="main">
     <aside id="sidebar">
+      <button id="sidebar-close" onclick="closeSidebar()" style="display:none;position:absolute;top:12px;right:12px;background:none;border:none;color:var(--text2);font-size:18px;padding:4px 8px;">✕</button>
       <div class="sidebar-label">Filters</div>
 
       <div class="filter-group">
@@ -302,8 +386,8 @@
       </div>
 
       <div class="btn-row">
-        <button class="btn btn-primary btn-sm" onclick="applyFilters()">Apply</button>
-        <button class="btn btn-ghost btn-sm" onclick="resetFilters()">Reset</button>
+        <button class="btn btn-primary btn-sm" onclick="applyFilters();closeSidebar()">Apply</button>
+        <button class="btn btn-ghost btn-sm" onclick="resetFilters();closeSidebar()">Reset</button>
       </div>
     </aside>
 
@@ -657,6 +741,26 @@ function init() {
       else $('search-input').blur();
     }
   });
+}
+
+// ── Sidebar (mobile drawer) ───────────────────────────────────────────────
+function toggleSidebar() {
+  const sb = $('sidebar');
+  const ov = $('sidebar-overlay');
+  const cl = $('sidebar-close');
+  const isOpen = sb.classList.contains('open');
+  if (isOpen) {
+    sb.classList.remove('open');
+    ov.classList.remove('open');
+  } else {
+    sb.classList.add('open');
+    ov.classList.add('open');
+    if (cl) cl.style.display = 'block';
+  }
+}
+function closeSidebar() {
+  $('sidebar').classList.remove('open');
+  $('sidebar-overlay').classList.remove('open');
 }
 
 // ── Navigation ─────────────────────────────────────────────────────────────
