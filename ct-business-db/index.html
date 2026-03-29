@@ -188,6 +188,31 @@
     .velocity-dot.active { background: var(--accent); }
     .velocity-dot.high { background: var(--orange); }
 
+    /* People Search page */
+    .people-search-wrap { max-width: 960px; }
+    .people-search-title { font-size: 20px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+    .people-search-sub { font-size: 13px; color: var(--text2); margin-bottom: 20px; }
+    .people-controls { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 16px; }
+    .people-controls .filter-group { margin-bottom: 0; }
+    #people-input { width: 100%; padding: 9px 12px; background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 14px; outline: none; transition: border-color 0.15s; }
+    #people-input:focus { border-color: var(--accent); }
+    #people-results-count { font-size: 13px; color: var(--text2); margin-bottom: 12px; min-height: 20px; }
+    .people-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin-bottom: 8px; transition: border-color 0.15s; }
+    .people-card:hover { border-color: var(--accent); }
+    .people-card-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; }
+    .people-card-role { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 11px; font-weight: 500; margin-right: 6px; }
+    .people-card-role.principal { background: rgba(47,129,247,0.15); color: var(--accent); }
+    .people-card-role.agent { background: rgba(163,113,247,0.15); color: var(--purple); }
+    .people-card-contact { font-size: 12px; color: var(--text2); margin-top: 4px; display: flex; gap: 14px; flex-wrap: wrap; }
+    .people-card-biz { font-size: 12px; color: var(--accent); margin-top: 5px; cursor: pointer; display: inline-block; }
+    .people-card-biz:hover { text-decoration: underline; }
+    .people-card-addr { font-size: 12px; color: var(--text3); margin-top: 3px; }
+    .people-card-title { font-size: 12px; color: var(--text3); margin-top: 2px; }
+    .people-empty { text-align: center; padding: 60px; color: var(--text3); font-size: 13px; }
+    .people-load-more { display: block; width: 100%; padding: 10px; background: var(--bg3); border: 1px solid var(--border); border-radius: 8px; color: var(--text2); font-size: 13px; text-align: center; cursor: pointer; margin-top: 4px; }
+    .people-load-more:hover { background: var(--bg2); color: var(--text); }
+    .people-notice { background: rgba(47,129,247,0.08); border: 1px solid rgba(47,129,247,0.2); border-radius: 8px; padding: 12px 16px; font-size: 13px; color: var(--text2); margin-bottom: 16px; }
+
     /* Toast */
     #toast { position: fixed; bottom: 24px; right: 24px; z-index: 9999; background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px; padding: 10px 16px; font-size: 13px; color: var(--text); box-shadow: 0 4px 20px rgba(0,0,0,0.4); transform: translateY(80px); opacity: 0; transition: all 0.25s; pointer-events: none; }
     #toast.show { transform: translateY(0); opacity: 1; }
@@ -214,6 +239,7 @@
     <div class="nav-tabs">
       <button class="nav-tab active" onclick="showPage('dashboard')">Dashboard</button>
       <button class="nav-tab" onclick="showPage('search')">Search</button>
+      <button class="nav-tab" onclick="showPage('people')">People Search</button>
     </div>
     <span class="nav-badge" id="nav-count">—</span>
     <span class="nav-meta" id="nav-meta"></span>
@@ -294,6 +320,31 @@
             <div class="chart-title">Business Types</div>
             <div id="chart-types"></div>
           </div>
+        </div>
+      </div>
+
+      <!-- People Search -->
+      <div class="page" id="page-people">
+        <div class="people-search-wrap">
+          <div class="people-search-title">People Search</div>
+          <div class="people-search-sub">Search principals/owners and registered agents by name, phone number, or email. Results link directly to the associated business.</div>
+          <div class="people-notice" id="people-notice" style="display:none">⏳ Detail data is still loading in the background. Results may be incomplete — try again in a moment.</div>
+          <div class="people-controls">
+            <div class="filter-group" style="flex:2;min-width:220px">
+              <label class="filter-label">Name, Phone, or Email</label>
+              <input id="people-input" placeholder="e.g. John Smith · 860-555-1234 · john@example.com" oninput="onPeopleSearch()" />
+            </div>
+            <div class="filter-group" style="min-width:180px">
+              <label class="filter-label">Search In</label>
+              <select class="filter-select" id="people-type" onchange="runPeopleSearch()">
+                <option value="both">Principals &amp; Agents</option>
+                <option value="principals">Principals / Owners only</option>
+                <option value="agents">Registered Agents only</option>
+              </select>
+            </div>
+          </div>
+          <div id="people-results-count"></div>
+          <div id="people-results-list"></div>
         </div>
       </div>
 
@@ -616,7 +667,148 @@ function showPage(name) {
   const tabs = document.querySelectorAll('.nav-tab');
   if (name === 'dashboard') tabs[0].classList.add('active');
   if (name === 'search')    tabs[1].classList.add('active');
+  if (name === 'people')    tabs[2].classList.add('active');
   $('sidebar').style.display = name === 'search' ? 'block' : 'none';
+  if (name === 'people') onPeoplePageOpen();
+}
+
+// ── People Search ──────────────────────────────────────────────────────────
+let peopleTimer = null;
+let peoplePageSize = 50;
+let peopleAllResults = [];
+
+function onPeoplePageOpen() {
+  // Show notice if detail data isn't loaded yet
+  const loaded = PRINCIPALS !== null && AGENTS !== null;
+  $('people-notice').style.display = loaded ? 'none' : 'block';
+  // Kick off loading in background if not already started
+  loadDetailData();
+}
+
+function onPeopleSearch() {
+  clearTimeout(peopleTimer);
+  peopleTimer = setTimeout(runPeopleSearch, 350);
+}
+
+async function runPeopleSearch() {
+  const q = ($('people-input').value || '').trim().toLowerCase();
+  if (!q || q.length < 2) {
+    $('people-results-count').textContent = '';
+    $('people-results-list').innerHTML = '<div class="people-empty">Enter at least 2 characters to search.</div>';
+    return;
+  }
+
+  $('people-results-count').textContent = 'Searching…';
+  $('people-results-list').innerHTML = '';
+
+  // If detail data not yet loaded, wait for it
+  if (PRINCIPALS === null || AGENTS === null) {
+    $('people-notice').style.display = 'block';
+    $('people-results-count').textContent = 'Loading data…';
+    await loadDetailData();
+    $('people-notice').style.display = 'none';
+  }
+
+  const mode = ($('people-type').value) || 'both';
+  const results = [];
+
+  // Search principals
+  if (mode === 'both' || mode === 'principals') {
+    for (const [bizId, prins] of Object.entries(PRINCIPALS || {})) {
+      for (const p of prins) {
+        const name = (p.n || '').toLowerCase();
+        const phone = (p.ph || '').toLowerCase().replace(/[^0-9]/g, '');
+        const email = (p.em || '').toLowerCase();
+        const qDigits = q.replace(/[^0-9]/g, '');
+        const nameMatch  = name.includes(q);
+        const phoneMatch = qDigits.length >= 7 && phone.includes(qDigits);
+        const emailMatch = email.includes(q);
+        if (nameMatch || phoneMatch || emailMatch) {
+          results.push({ type: 'principal', bizId, record: p });
+          if (results.length >= 5000) break;
+        }
+      }
+      if (results.length >= 5000) break;
+    }
+  }
+
+  // Search agents
+  if (mode === 'both' || mode === 'agents') {
+    for (const [bizId, agts] of Object.entries(AGENTS || {})) {
+      for (const a of agts) {
+        const name = (a.n || '').toLowerCase();
+        const phone = (a.ph || '').toLowerCase().replace(/[^0-9]/g, '');
+        const email = (a.em || '').toLowerCase();
+        const qDigits = q.replace(/[^0-9]/g, '');
+        const nameMatch  = name.includes(q);
+        const phoneMatch = qDigits.length >= 7 && phone.includes(qDigits);
+        const emailMatch = email.includes(q);
+        if (nameMatch || phoneMatch || emailMatch) {
+          results.push({ type: 'agent', bizId, record: a });
+          if (results.length >= 5000) break;
+        }
+      }
+      if (results.length >= 5000) break;
+    }
+  }
+
+  peopleAllResults = results;
+  peoplePageSize = 50;
+  renderPeopleResults();
+}
+
+function renderPeopleResults() {
+  const results = peopleAllResults;
+  const total = results.length;
+  const showing = Math.min(peoplePageSize, total);
+
+  if (total === 0) {
+    $('people-results-count').textContent = 'No results found.';
+    $('people-results-list').innerHTML = '<div class="people-empty">No matching principals or agents found. Try a different name, phone, or email.</div>';
+    return;
+  }
+
+  const capped = total >= 5000;
+  $('people-results-count').textContent = capped
+    ? `Showing ${fmt(showing)} of 5,000+ results — refine your search for better results`
+    : `Showing ${fmt(showing)} of ${fmt(total)} result${total !== 1 ? 's' : ''}`;
+
+  const cards = results.slice(0, showing).map(r => {
+    const rec = r.record;
+    const biz = ALL_MAP[r.bizId];
+    const bizName = biz ? biz.n : r.bizId;
+    const roleLabel = r.type === 'principal' ? 'Principal/Owner' : 'Registered Agent';
+    const roleClass = r.type === 'principal' ? 'principal' : 'agent';
+    const addr = r.type === 'agent'
+      ? [rec.ba, rec.bc ? toTitleCase(rec.bc) : '', rec.bs, rec.bz].filter(Boolean).join(', ')
+      : [rec.ad, rec.ci ? toTitleCase(rec.ci) : '', rec.sa, rec.zp].filter(Boolean).join(', ');
+    const contactParts = [];
+    if (rec.ph) contactParts.push(`<a href="tel:${esc(rec.ph)}">${esc(rec.ph)}</a>`);
+    if (rec.em) contactParts.push(`<a href="mailto:${esc(rec.em)}">${esc(rec.em)}</a>`);
+    return `<div class="people-card">
+      <div class="people-card-name">${esc(rec.n || '—')}</div>
+      <div><span class="people-card-role ${roleClass}">${roleLabel}</span>${rec.d ? `<span style="font-size:11px;color:var(--text3)">${esc(rec.d)}</span>` : ''}</div>
+      ${contactParts.length ? `<div class="people-card-contact">${contactParts.join('')}</div>` : ''}
+      ${addr ? `<div class="people-card-addr">📍 ${esc(addr)}</div>` : ''}
+      ${biz ? `<div class="people-card-biz" onclick="openDetailFromPeople('${esc(r.bizId)}')">&#128188; ${esc(bizName)}${biz.bt ? ` — ${esc(biz.bt)}` : ''}${biz.ci ? ` · ${esc(toTitleCase(biz.ci))}` : ''}</div>` : `<div class="people-card-addr">Business ID: ${esc(r.bizId)}</div>`}
+    </div>`;
+  }).join('');
+
+  const loadMoreBtn = showing < total
+    ? `<button class="people-load-more" onclick="peopleLoadMore()">Show more (${fmt(total - showing)} remaining)</button>`
+    : '';
+
+  $('people-results-list').innerHTML = cards + loadMoreBtn;
+}
+
+function peopleLoadMore() {
+  peoplePageSize += 50;
+  renderPeopleResults();
+}
+
+function openDetailFromPeople(bizId) {
+  showPage('search');
+  openDetail(bizId);
 }
 
 // ── Dashboard ──────────────────────────────────────────────────────────────
@@ -1034,7 +1226,7 @@ function renderAgents(bizId) {
   }
 
   const rows = agents.map(a => {
-    const addr = [a.ad, a.ci ? toTitleCase(a.ci) : '', a.sa, a.zp].filter(Boolean).join(', ');
+    const addr = [a.ba, a.bc ? toTitleCase(a.bc) : '', a.bs, a.bz].filter(Boolean).join(', ');
     const addrMapHtml = addr
       ? `<a href="${mapsLink(addr)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">📍 Map</a>`
       : '';
