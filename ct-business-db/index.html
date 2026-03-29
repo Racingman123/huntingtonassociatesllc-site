@@ -291,6 +291,13 @@
     .people-load-more:hover { background: var(--bg2); color: var(--text); }
     .people-notice { background: rgba(47,129,247,0.08); border: 1px solid rgba(47,129,247,0.2); border-radius: 8px; padding: 12px 16px; font-size: 13px; color: var(--text2); margin-bottom: 16px; }
 
+    /* Mobile search cards */
+    .mobile-biz-card { background: var(--bg2); border: 1px solid var(--border); border-radius: 8px; padding: 14px 16px; margin-bottom: 8px; cursor: pointer; transition: border-color 0.15s; -webkit-tap-highlight-color: transparent; }
+    .mobile-biz-card:active { border-color: var(--accent); background: var(--bg3); }
+    .mobile-card-name { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 6px; line-height: 1.3; }
+    .mobile-card-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 5px; }
+    .mobile-card-sub { font-size: 12px; color: var(--text2); margin-top: 3px; }
+
     /* Toast */
     #toast { position: fixed; bottom: 24px; right: 24px; z-index: 9999; background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px; padding: 10px 16px; font-size: 13px; color: var(--text); box-shadow: 0 4px 20px rgba(0,0,0,0.4); transform: translateY(80px); opacity: 0; transition: all 0.25s; pointer-events: none; }
     #toast.show { transform: translateY(0); opacity: 1; }
@@ -439,7 +446,7 @@
           <div class="search-header">
             <div class="search-box-wrap">
               <svg class="search-icon" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-              <input id="search-input" placeholder="Search by name, account #, city, NAICS, owner name…" oninput="onSearch()" />
+              <input id="search-input" placeholder="Search by name, account #, city, NAICS, owner name…" oninput="IS_MOBILE ? (clearTimeout(mobileSearchTimer), mobileSearchTimer=setTimeout(()=>mobileSearch(this.value),350)) : onSearch()" />
             </div>
             <span class="result-count" id="result-count">— results</span>
             <button class="btn btn-ghost btn-sm btn-icon" onclick="exportSelectedCSV()">
@@ -1442,8 +1449,165 @@ function exportSelectedCSV() {
   showToast('Exported ' + fmt(toExport.length) + ' businesses');
 }
 
+// ── Mobile detection ─────────────────────────────────────────────────────
+const IS_MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
+  || (window.innerWidth <= 768 && 'ontouchstart' in window);
+
+// ── Mobile state ──────────────────────────────────────────────────────────
+let MOBILE_SHARD_CACHE = {};  // letter -> array of records
+let MOBILE_BIZ_CACHE   = {};  // chunkIdx -> {id: record}
+let mobileSearchTimer  = null;
+let mobileSearchResults = [];
+let mobileResultsPage  = 0;
+const MOBILE_PAGE_SIZE = 30;
+
+// ── Mobile boot ───────────────────────────────────────────────────────────
+async function loadMobile() {
+  try {
+    setLoadBar(20, 'Loading…', '');
+    await loadScript('data/manifest.js');
+    MANIFEST = window.__MANIFEST || {};
+    await loadScript('data/meta.js');
+    META = window.__META || {};
+    setLoadBar(100, 'Ready', '');
+    await new Promise(r => setTimeout(r, 200));
+    initMobile();
+  } catch(e) {
+    $('load-status').textContent = 'Error: ' + e.message;
+    console.error(e);
+  }
+}
+
+function initMobile() {
+  $('loading-screen').style.display = 'none';
+  $('app').style.display = 'flex';
+  // Hide dashboard and sidebar, show search directly
+  $('sidebar').style.display = 'none';
+  $('sidebar-toggle').style.display = 'none';
+  showPage('search');
+  // Show mobile search prompt
+  $('search-list-view').innerHTML = `
+    <div style="text-align:center;padding:48px 24px;color:var(--text2)">
+      <div style="font-size:32px;margin-bottom:16px">🔍</div>
+      <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:8px">CT Business Search</div>
+      <div style="font-size:13px">Type a business name above to search 436,000+ CT businesses.</div>
+    </div>`;
+}
+
+async function mobileSearch(q) {
+  q = (q || '').trim();
+  if (q.length < 2) {
+    $('search-list-view').innerHTML = `
+      <div style="text-align:center;padding:48px 24px;color:var(--text2)">
+        <div style="font-size:32px;margin-bottom:16px">🔍</div>
+        <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:8px">CT Business Search</div>
+        <div style="font-size:13px">Type a business name above to search 436,000+ CT businesses.</div>
+      </div>`;
+    return;
+  }
+
+  $('search-list-view').innerHTML = `<div class="loading-detail"><span class="spinner"></span>Searching…</div>`;
+
+  const ql = q.toLowerCase();
+  const first = ql[0];
+  const shardKey = /[a-z]/.test(first) ? first : '0';
+
+  // Load shard if not cached
+  if (!MOBILE_SHARD_CACHE[shardKey]) {
+    try {
+      await loadScript(`data/mshard_${shardKey}.js`);
+      const varName = `__MSHARD_${shardKey.toUpperCase()}`;
+      MOBILE_SHARD_CACHE[shardKey] = window[varName] || [];
+      delete window[varName];
+    } catch(e) {
+      $('search-list-view').innerHTML = `<div class="empty-state">Error loading search data: ${esc(e.message)}</div>`;
+      return;
+    }
+  }
+
+  const shard = MOBILE_SHARD_CACHE[shardKey];
+  // Filter: [id, name, city, type, status, dateReg, accountNum, sf, email, chunkIdx]
+  const matches = shard.filter(r => (r[1]||'').toLowerCase().includes(ql));
+
+  mobileSearchResults = matches;
+  mobileResultsPage = 0;
+  renderMobileResults(q);
+}
+
+function renderMobileResults(q) {
+  const results = mobileSearchResults;
+  const total = results.length;
+  const start = mobileResultsPage * MOBILE_PAGE_SIZE;
+  const end   = Math.min(start + MOBILE_PAGE_SIZE, total);
+  const page  = results.slice(start, end);
+
+  if (total === 0) {
+    $('search-list-view').innerHTML = `<div class="empty-state">No businesses found matching "${esc(q)}".<br><span style="font-size:12px;color:var(--text3)">Try a shorter or different name.</span></div>`;
+    return;
+  }
+
+  const countHtml = `<div class="result-count" style="margin-bottom:12px">${fmt(total)} result${total!==1?'s':''} for "${esc(q)}"</div>`;
+
+  const cards = page.map(r => {
+    const [id, name, city, type, status, dateReg, acct, sf, email, chunkIdx] = r;
+    const statusCls = (status||'').toLowerCase().includes('active') ? 'badge-green'
+      : (status||'').toLowerCase().includes('inactive') ? 'badge-red' : 'badge-yellow';
+    return `<div class="mobile-biz-card" onclick="mobileOpenDetail('${esc(id)}', ${chunkIdx})">
+      <div class="mobile-card-name">${esc(name||'—')}</div>
+      <div class="mobile-card-meta">
+        ${type ? `<span class="badge badge-blue" style="font-size:10px">${esc(type)}</span>` : ''}
+        ${status ? `<span class="badge ${statusCls}" style="font-size:10px">${esc(status)}</span>` : ''}
+      </div>
+      <div class="mobile-card-sub">
+        ${city ? `📍 ${esc(toTitleCase(city))}${sf && sf!=='CT' ? ', '+esc(sf) : ''}` : ''}
+        ${dateReg ? ` · Reg. ${fmtDate(dateReg)}` : ''}
+        ${acct ? ` · #${esc(acct)}` : ''}
+      </div>
+      ${email ? `<div class="mobile-card-sub" style="color:var(--accent);font-size:11px">${esc(email)}</div>` : ''}
+    </div>`;
+  }).join('');
+
+  const prevBtn = mobileResultsPage > 0
+    ? `<button class="page-btn" onclick="mobileChangePage(-1)">← Prev</button>` : '';
+  const nextBtn = end < total
+    ? `<button class="page-btn" onclick="mobileChangePage(1)">Next →</button>` : '';
+  const pageInfo = total > MOBILE_PAGE_SIZE
+    ? `<span class="page-info">Page ${mobileResultsPage+1} of ${Math.ceil(total/MOBILE_PAGE_SIZE)}</span>` : '';
+  const paginationHtml = (prevBtn || nextBtn)
+    ? `<div class="pagination">${prevBtn}${pageInfo}${nextBtn}</div>` : '';
+
+  $('search-list-view').innerHTML = countHtml + cards + paginationHtml;
+}
+
+function mobileChangePage(dir) {
+  mobileResultsPage += dir;
+  renderMobileResults($('search-input').value);
+  window.scrollTo(0, 0);
+}
+
+async function mobileOpenDetail(bizId, chunkIdx) {
+  // Load the full biz chunk if not cached
+  if (!MOBILE_BIZ_CACHE[chunkIdx]) {
+    const pad = String(chunkIdx).padStart(3,'0');
+    await loadScript(`data/biz_${pad}.js`);
+    const key = `__BIZ_CHUNK_${pad}`;
+    const chunk = window[key] || [];
+    delete window[key];
+    const map = {};
+    chunk.forEach(b => { map[b.id] = b; ALL_MAP[b.id] = b; });
+    MOBILE_BIZ_CACHE[chunkIdx] = map;
+    // Add to ALL for compatibility with renderPrincipals/renderAgents
+    chunk.forEach(b => { if (!ALL_MAP[b.id]) ALL.push(b); });
+  }
+  openDetail(bizId);
+}
+
 // ── Boot ───────────────────────────────────────────────────────────────────
-loadAll();
+if (IS_MOBILE) {
+  loadMobile();
+} else {
+  loadAll();
+}
 </script>
 </body>
 </html>
