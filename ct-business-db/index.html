@@ -444,12 +444,22 @@ function buildDashboard() {
   ].map(s => `<div class="stat-card"><div class="stat-label">${s.label}</div><div class="stat-value">${s.value}</div><div class="stat-sub">${s.sub}</div></div>`).join('');
 
   const cityCounts = {};
-  ALL.forEach(b => { if (b.ci) cityCounts[b.ci] = (cityCounts[b.ci]||0) + 1; });
+  const cityDisplay = {}; // store a clean title-case version for display
+  function toTitleCase(s) {
+    return s.trim().toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+  }
+  ALL.forEach(b => {
+    if (!b.ci) return;
+    const key = b.ci.trim().toLowerCase(); // normalize key to lowercase
+    cityCounts[key] = (cityCounts[key] || 0) + 1;
+    if (!cityDisplay[key]) cityDisplay[key] = toTitleCase(b.ci);
+  });
   const topCities = Object.entries(cityCounts).sort((a,b) => b[1]-a[1]).slice(0,15);
   const maxCity = topCities[0]?.[1] || 1;
-  $('chart-cities').innerHTML = topCities.map(([city, count]) =>
-    `<div class="bar-row"><div class="bar-label" title="${esc(city)}">${esc(city)}</div><div class="bar-track"><div class="bar-fill" style="width:${(count/maxCity*100).toFixed(1)}%"></div></div><div class="bar-count">${fmt(count)}</div></div>`
-  ).join('');
+  $('chart-cities').innerHTML = topCities.map(([key, count]) => {
+    const city = cityDisplay[key] || key;
+    return `<div class="bar-row"><div class="bar-label" title="${esc(city)}">${esc(city)}</div><div class="bar-track"><div class="bar-fill" style="width:${(count/maxCity*100).toFixed(1)}%"></div></div><div class="bar-count">${fmt(count)}</div></div>`;
+  }).join('');
 
   const topTypes = (META.businessTypes || []).slice(0, 12);
   const maxType = topTypes[0]?.count || 1;
