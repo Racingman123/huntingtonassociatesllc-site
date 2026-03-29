@@ -23,8 +23,9 @@
       --yellow:    #d29922;
       --red:       #f85149;
       --purple:    #a371f7;
+      --orange:    #f0883e;
       --nav-h:     56px;
-      --sidebar-w: 260px;
+      --sidebar-w: 270px;
     }
     html { scroll-behavior: smooth; }
     body { font-family: 'Inter', -apple-system, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5; min-height: 100vh; }
@@ -51,6 +52,8 @@
     .nav-tab.active { background: var(--bg3); color: var(--text); }
     .nav-badge { background: var(--bg3); border: 1px solid var(--border); border-radius: 12px; padding: 2px 10px; font-size: 11px; color: var(--text2); white-space: nowrap; }
     .nav-meta { font-size: 12px; color: var(--text3); white-space: nowrap; }
+    .kbd-hint { font-size: 11px; color: var(--text3); white-space: nowrap; }
+    .kbd { display: inline-block; padding: 1px 5px; border: 1px solid var(--border2); border-radius: 3px; font-size: 10px; color: var(--text3); background: var(--bg3); }
 
     /* Layout */
     #main { display: flex; flex: 1; }
@@ -70,7 +73,8 @@
     .btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); }
     .btn-ghost:hover { background: var(--bg3); color: var(--text); }
     .btn-sm { padding: 5px 10px; font-size: 12px; }
-    .btn-row { display: flex; gap: 8px; }
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .btn-icon { display: inline-flex; align-items: center; gap: 4px; }
 
     /* Content */
     #content { flex: 1; padding: 24px; overflow-x: hidden; min-width: 0; }
@@ -110,12 +114,14 @@
     tr:last-child td { border-bottom: none; }
     tbody tr { background: var(--bg); transition: background 0.1s; }
     tbody tr:hover { background: var(--bg2); cursor: pointer; }
+    tbody tr.selected { background: rgba(47,129,247,0.08); }
     .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 500; }
     .badge-green  { background: rgba(63,185,80,0.15);  color: var(--green); }
     .badge-yellow { background: rgba(210,153,34,0.15); color: var(--yellow); }
     .badge-red    { background: rgba(248,81,73,0.15);  color: var(--red); }
     .badge-blue   { background: rgba(47,129,247,0.15); color: var(--accent); }
     .badge-purple { background: rgba(163,113,247,0.15);color: var(--purple); }
+    .badge-orange { background: rgba(240,136,62,0.15); color: var(--orange); }
     .badge-gray   { background: var(--bg3); color: var(--text2); }
     .pagination { display: flex; align-items: center; gap: 8px; margin-top: 16px; justify-content: center; flex-wrap: wrap; }
     .page-btn { padding: 5px 12px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg2); color: var(--text2); font-size: 13px; }
@@ -123,6 +129,11 @@
     .page-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
     .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
     .page-info { font-size: 12px; color: var(--text3); }
+
+    /* Selection bar */
+    #selection-bar { display: none; align-items: center; gap: 12px; padding: 8px 14px; background: rgba(47,129,247,0.12); border: 1px solid rgba(47,129,247,0.3); border-radius: 8px; margin-bottom: 12px; }
+    #selection-bar.visible { display: flex; }
+    .sel-count { font-size: 13px; color: var(--accent); font-weight: 500; }
 
     /* Detail */
     .back-btn { display: inline-flex; align-items: center; gap: 6px; color: var(--text2); font-size: 13px; margin-bottom: 20px; background: none; border: none; padding: 0; }
@@ -132,7 +143,11 @@
     .detail-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
     .detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
     .detail-field-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
-    .detail-field-value { font-size: 13px; color: var(--text); }
+    .detail-field-value { font-size: 13px; color: var(--text); display: flex; align-items: center; gap: 6px; }
+    .copy-btn { background: none; border: none; padding: 2px 4px; color: var(--text3); border-radius: 3px; font-size: 11px; opacity: 0; transition: opacity 0.15s; }
+    .detail-field-value:hover .copy-btn { opacity: 1; }
+    .copy-btn:hover { color: var(--accent); background: var(--bg3); }
+    .map-link { font-size: 11px; color: var(--accent); }
     .tabs { display: flex; gap: 2px; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
     .tab-btn { padding: 8px 16px; border: none; background: transparent; color: var(--text2); font-size: 13px; font-weight: 500; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: all 0.15s; }
     .tab-btn:hover { color: var(--text); }
@@ -148,6 +163,35 @@
     .spinner { display: inline-block; width: 16px; height: 16px; border: 2px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 8px; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
+    /* Research links */
+    .research-links { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .research-link { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px; border-radius: 5px; font-size: 11px; font-weight: 500; border: 1px solid var(--border); color: var(--text2); background: var(--bg3); text-decoration: none; transition: all 0.15s; }
+    .research-link:hover { border-color: var(--accent); color: var(--accent); background: rgba(47,129,247,0.08); }
+
+    /* Network badge */
+    .network-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 500; background: rgba(163,113,247,0.15); color: var(--purple); cursor: pointer; border: none; }
+    .network-badge:hover { background: rgba(163,113,247,0.25); }
+
+    /* Owner network panel */
+    .owner-panel { background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px; padding: 14px; margin-top: 8px; }
+    .owner-panel-title { font-size: 12px; font-weight: 600; color: var(--text2); margin-bottom: 10px; }
+    .owner-biz-link { display: block; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--accent); cursor: pointer; }
+    .owner-biz-link:last-child { border-bottom: none; }
+    .owner-biz-link:hover { color: var(--text); }
+    .owner-biz-meta { font-size: 11px; color: var(--text3); }
+
+    /* Velocity indicator */
+    .velocity-bar { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
+    .velocity-label { font-size: 11px; color: var(--text3); }
+    .velocity-dots { display: flex; gap: 3px; }
+    .velocity-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--bg3); }
+    .velocity-dot.active { background: var(--accent); }
+    .velocity-dot.high { background: var(--orange); }
+
+    /* Toast */
+    #toast { position: fixed; bottom: 24px; right: 24px; z-index: 9999; background: var(--bg3); border: 1px solid var(--border2); border-radius: 8px; padding: 10px 16px; font-size: 13px; color: var(--text); box-shadow: 0 4px 20px rgba(0,0,0,0.4); transform: translateY(80px); opacity: 0; transition: all 0.25s; pointer-events: none; }
+    #toast.show { transform: translateY(0); opacity: 1; }
+
     ::-webkit-scrollbar { width: 6px; height: 6px; }
     ::-webkit-scrollbar-track { background: var(--bg); }
     ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
@@ -162,6 +206,8 @@
   <div class="loading-sub" id="load-sub"></div>
 </div>
 
+<div id="toast"></div>
+
 <div id="app" style="display:none">
   <nav id="topnav">
     <div class="nav-brand">CT <span>Biz</span> DB</div>
@@ -171,42 +217,61 @@
     </div>
     <span class="nav-badge" id="nav-count">—</span>
     <span class="nav-meta" id="nav-meta"></span>
+    <span class="kbd-hint"><kbd class="kbd">/</kbd> search &nbsp; <kbd class="kbd">Esc</kbd> back</span>
   </nav>
 
   <div id="main">
     <aside id="sidebar">
       <div class="sidebar-label">Filters</div>
+
       <div class="filter-group">
         <label class="filter-label">Business Type</label>
-        <select class="filter-select" id="f-type"><option value="">All types</option></select>
+        <select class="filter-select" id="f-type" onchange="applyFilters()"><option value="">All types</option></select>
       </div>
+
       <div class="filter-group">
         <label class="filter-label">City</label>
-        <input class="filter-input" id="f-city" placeholder="e.g. Hartford" />
+        <input class="filter-input" id="f-city" placeholder="e.g. Hartford" oninput="onSearch()" />
       </div>
+
       <div class="filter-group">
         <label class="filter-label">State of Formation</label>
-        <input class="filter-input" id="f-state" placeholder="e.g. CT" maxlength="2" style="text-transform:uppercase" />
+        <select class="filter-select" id="f-state" onchange="applyFilters()">
+          <option value="">All states</option>
+          <option value="CT">CT — Connecticut</option>
+          <option value="DE">DE — Delaware</option>
+          <option value="FL">FL — Florida</option>
+          <option value="MA">MA — Massachusetts</option>
+          <option value="NY">NY — New York</option>
+          <option value="NJ">NJ — New Jersey</option>
+          <option value="TX">TX — Texas</option>
+          <option value="CA">CA — California</option>
+        </select>
       </div>
+
       <div class="filter-group">
         <label class="filter-label">Registered After</label>
-        <input class="filter-input" id="f-date-from" type="date" />
+        <input class="filter-input" id="f-date-from" type="date" onchange="applyFilters()" />
       </div>
+
       <div class="filter-group">
         <label class="filter-label">Registered Before</label>
-        <input class="filter-input" id="f-date-to" type="date" />
+        <input class="filter-input" id="f-date-to" type="date" onchange="applyFilters()" />
       </div>
+
       <div class="filter-group">
-        <label class="filter-label">Ownership Flags</label>
+        <label class="filter-label">Special Filters</label>
         <div class="checkbox-group">
-          <label class="checkbox-item"><input type="checkbox" id="f-woman"> Woman-Owned</label>
-          <label class="checkbox-item"><input type="checkbox" id="f-veteran"> Veteran-Owned</label>
-          <label class="checkbox-item"><input type="checkbox" id="f-minority"> Minority-Owned</label>
-          <label class="checkbox-item"><input type="checkbox" id="f-disability"> Disability-Owned</label>
+          <label class="checkbox-item"><input type="checkbox" id="f-has-liens" onchange="applyFilters()"> Has Active UCC Liens</label>
+          <label class="checkbox-item"><input type="checkbox" id="f-foreign" onchange="applyFilters()"> Foreign (non-CT) Entity</label>
+          <label class="checkbox-item"><input type="checkbox" id="f-network" onchange="applyFilters()"> Network Owner (3+ businesses)</label>
+          <label class="checkbox-item"><input type="checkbox" id="f-email" onchange="applyFilters()"> Has Email on File</label>
+          <label class="checkbox-item"><input type="checkbox" id="f-recent" onchange="applyFilters()"> Registered Last 2 Years</label>
         </div>
       </div>
+
       <div class="btn-row">
-        <button class="btn btn-primary btn-sm" onclick="applyFilters()">Apply Filters</button>
+        <button class="btn btn-primary btn-sm" onclick="applyFilters()">Apply</button>
         <button class="btn btn-ghost btn-sm" onclick="resetFilters()">Reset</button>
       </div>
     </aside>
@@ -234,24 +299,34 @@
           <div class="search-header">
             <div class="search-box-wrap">
               <svg class="search-icon" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-              <input id="search-input" placeholder="Search by name, account number, city, NAICS…" oninput="onSearch()" />
+              <input id="search-input" placeholder="Search by name, account #, city, NAICS, owner name…" oninput="onSearch()" />
             </div>
             <span class="result-count" id="result-count">— results</span>
-            <button class="btn btn-ghost btn-sm" onclick="exportCSV()">
-              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:-2px;margin-right:4px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <button class="btn btn-ghost btn-sm btn-icon" onclick="exportSelectedCSV()">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Export CSV
             </button>
           </div>
+
+          <!-- Selection bar -->
+          <div id="selection-bar">
+            <span class="sel-count" id="sel-count-text">0 selected</span>
+            <button class="btn btn-primary btn-sm" onclick="exportSelectedCSV()">Export Selected</button>
+            <button class="btn btn-ghost btn-sm" onclick="clearSelection()">Clear</button>
+          </div>
+
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
+                  <th style="width:36px"><input type="checkbox" id="select-all" onchange="toggleSelectAll(this)" title="Select all on page" style="accent-color:var(--accent)"></th>
                   <th class="sortable" onclick="setSort('n')">Name <span id="sort-n">↕</span></th>
                   <th class="sortable" onclick="setSort('bt')">Type <span id="sort-bt">↕</span></th>
                   <th>City</th>
                   <th>State</th>
                   <th class="sortable" onclick="setSort('dr')">Registered <span id="sort-dr">↕</span></th>
                   <th>Status</th>
+                  <th>Flags</th>
                 </tr>
               </thead>
               <tbody id="results-body"></tbody>
@@ -296,23 +371,47 @@ let sortDir = 1;
 let curPage = 1;
 const PAGE_SIZE = 50;
 let searchTimer = null;
+let selectedIds = new Set();
 
-// Detail data — loaded lazily, merged from all chunks
-let PRINCIPALS = null;  // null = not yet loaded
+// Detail data — loaded lazily
+let PRINCIPALS = null;
 let AGENTS     = null;
 let LIENS      = null;
 let detailLoadPromise = null;
+
+// Owner network index: normalizedName -> [bizId, ...]
+let OWNER_INDEX = {};
+// Lien set: bizId -> true (for fast filter)
+let LIEN_BIZ_SET = {};
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
 const fmt = n => (n != null && n !== '') ? new Intl.NumberFormat().format(n) : '—';
 const fmtDate = d => { if (!d) return '—'; const s = String(d); return s.length >= 10 ? s.slice(0,10) : s; };
 const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function toTitleCase(s) { return (s||'').trim().toLowerCase().replace(/\b\w/g, c => c.toUpperCase()); }
 
 function setLoadBar(pct, msg, sub) {
   $('load-bar').style.width = pct + '%';
   $('load-status').textContent = msg;
   if (sub !== undefined) $('load-sub').textContent = sub;
+}
+
+let toastTimer = null;
+function showToast(msg) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+function copyText(text) {
+  navigator.clipboard.writeText(text).then(() => showToast('Copied: ' + text));
+}
+
+function mapsLink(addr) {
+  return 'https://maps.google.com/?q=' + encodeURIComponent(addr);
 }
 
 // ── Script-tag loader ──────────────────────────────────────────────────────
@@ -326,7 +425,7 @@ function loadScript(src) {
   });
 }
 
-// ── Boot: load manifest → meta → business chunks ──────────────────────────
+// ── Boot ──────────────────────────────────────────────────────────────────
 async function loadAll() {
   try {
     setLoadBar(2, 'Loading manifest…', '');
@@ -340,15 +439,13 @@ async function loadAll() {
     for (let i = 0; i < bizTotal; i++) {
       const pct = 5 + Math.round((i / bizTotal) * 90);
       setLoadBar(pct,
-        `Loading businesses… (${fmt((i) * 10000)} of ~${fmt(bizTotal * 10000)})`,
+        `Loading businesses… (${fmt(i * 10000)} of ~${fmt(bizTotal * 10000)})`,
         `Chunk ${i+1} of ${bizTotal}`
       );
       await loadScript(`data/biz_${String(i).padStart(3,'0')}.js`);
-      // Merge this chunk into ALL
       const key = `__BIZ_CHUNK_${String(i).padStart(3,'0')}`;
       const chunk = window[key] || [];
       ALL = ALL.concat(chunk);
-      // Free memory
       delete window[key];
     }
 
@@ -370,7 +467,6 @@ function loadDetailData() {
     const agtTotal  = MANIFEST.agt_chunks  || 26;
     const lienTotal = MANIFEST.lien_chunks || 42;
 
-    // Principals
     PRINCIPALS = {};
     for (let i = 0; i < prinTotal; i++) {
       await loadScript(`data/prin_${String(i).padStart(3,'0')}.js`);
@@ -379,7 +475,6 @@ function loadDetailData() {
       delete window[key];
     }
 
-    // Agents
     AGENTS = {};
     for (let i = 0; i < agtTotal; i++) {
       await loadScript(`data/agt_${String(i).padStart(3,'0')}.js`);
@@ -388,7 +483,6 @@ function loadDetailData() {
       delete window[key];
     }
 
-    // Liens
     LIENS = [];
     for (let i = 0; i < lienTotal; i++) {
       await loadScript(`data/lien_${String(i).padStart(3,'0')}.js`);
@@ -396,8 +490,43 @@ function loadDetailData() {
       LIENS = LIENS.concat(window[key] || []);
       delete window[key];
     }
+
+    // Build owner network index
+    buildOwnerIndex();
+    // Build lien biz set
+    buildLienBizSet();
   })();
   return detailLoadPromise;
+}
+
+function buildOwnerIndex() {
+  OWNER_INDEX = {};
+  Object.entries(PRINCIPALS).forEach(([bizId, prins]) => {
+    prins.forEach(p => {
+      if (!p.n) return;
+      const key = p.n.trim().toLowerCase();
+      if (!OWNER_INDEX[key]) OWNER_INDEX[key] = new Set();
+      OWNER_INDEX[key].add(bizId);
+    });
+  });
+}
+
+function buildLienBizSet() {
+  LIEN_BIZ_SET = {};
+  // Index liens by debtor name for fast lookup
+  // Also build a set of bizIds that have liens by matching business names
+  const nameToId = {};
+  ALL.forEach(b => { if (b.n) nameToId[b.n.toUpperCase().trim()] = b.id; });
+  LIENS.forEach(l => {
+    const dn = (l.dn||'').toUpperCase().trim();
+    if (nameToId[dn]) LIEN_BIZ_SET[nameToId[dn]] = true;
+    // partial match for common cases
+    Object.keys(nameToId).forEach(name => {
+      if (dn.includes(name) || name.includes(dn)) {
+        LIEN_BIZ_SET[nameToId[name]] = true;
+      }
+    });
+  });
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────
@@ -407,7 +536,6 @@ function init() {
   $('nav-count').textContent = fmt(ALL.length) + ' businesses';
   $('nav-meta').textContent = 'Updated: ' + (META.lastUpdated || '').slice(0,10);
 
-  // Populate type dropdown
   const typeSelect = $('f-type');
   (META.businessTypes || []).forEach(t => {
     const opt = document.createElement('option');
@@ -421,6 +549,19 @@ function init() {
 
   // Start background loading of detail data
   setTimeout(() => loadDetailData(), 1500);
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', e => {
+    if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'SELECT') {
+      e.preventDefault();
+      showPage('search');
+      $('search-input').focus();
+    }
+    if (e.key === 'Escape') {
+      if ($('detail-view').style.display !== 'none') closeDetail();
+      else $('search-input').blur();
+    }
+  });
 }
 
 // ── Navigation ─────────────────────────────────────────────────────────────
@@ -437,20 +578,18 @@ function showPage(name) {
 // ── Dashboard ──────────────────────────────────────────────────────────────
 function buildDashboard() {
   $('stats-grid').innerHTML = [
-    { label: 'Active Businesses',  value: fmt(ALL.length),           sub: 'CT Secretary of State' },
-    { label: 'Principals on File', value: fmt(META.totalPrincipals), sub: 'Owners & officers' },
-    { label: 'Registered Agents',  value: fmt(META.totalAgents),     sub: 'Agent records' },
-    { label: 'UCC Lien Filings',   value: fmt(META.totalLiens),      sub: 'Active & lapsed liens' },
+    { label: 'Active Businesses',  value: fmt(ALL.length),            sub: 'CT Secretary of State' },
+    { label: 'Principals on File', value: fmt(META.totalPrincipals),  sub: 'Owners & officers' },
+    { label: 'Registered Agents',  value: fmt(META.totalAgents),      sub: 'Agent records' },
+    { label: 'UCC Lien Filings',   value: fmt(META.totalLiens),       sub: 'Active & lapsed liens' },
   ].map(s => `<div class="stat-card"><div class="stat-label">${s.label}</div><div class="stat-value">${s.value}</div><div class="stat-sub">${s.sub}</div></div>`).join('');
 
+  // Top cities — normalize casing
   const cityCounts = {};
-  const cityDisplay = {}; // store a clean title-case version for display
-  function toTitleCase(s) {
-    return s.trim().toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
-  }
+  const cityDisplay = {};
   ALL.forEach(b => {
     if (!b.ci) return;
-    const key = b.ci.trim().toLowerCase(); // normalize key to lowercase
+    const key = b.ci.trim().toLowerCase();
     cityCounts[key] = (cityCounts[key] || 0) + 1;
     if (!cityDisplay[key]) cityDisplay[key] = toTitleCase(b.ci);
   });
@@ -464,44 +603,64 @@ function buildDashboard() {
   const topTypes = (META.businessTypes || []).slice(0, 12);
   const maxType = topTypes[0]?.count || 1;
   $('chart-types').innerHTML = topTypes.map(t =>
-    `<div class="bar-row"><div class="bar-label" title="${esc(t.type)}">${esc(t.type)}</div><div class="bar-track"><div class="bar-fill" style="width:${(t.count/maxType*100).toFixed(1)}%;background:var(--purple)"></div></div><div class="bar-count">${fmt(t.count)}</div></div>`
+    `<div class="bar-row"><div class="bar-label" title="${esc(t.type)}">${esc(t.type)}</div><div class="bar-track"><div class="bar-fill" style="width:${(t.count/maxType*100).toFixed(1)}%;background:var(--green)"></div></div><div class="bar-count">${fmt(t.count)}</div></div>`
   ).join('');
 }
 
-// ── Search & Filter ────────────────────────────────────────────────────────
+// ── Filters & Search ───────────────────────────────────────────────────────
 function onSearch() {
   clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => { curPage = 1; applyFilters(); }, 250);
+  searchTimer = setTimeout(() => { curPage = 1; applyFilters(); }, 200);
 }
 
 function applyFilters() {
-  const q      = ($('search-input').value || '').toLowerCase().trim();
-  const type   = $('f-type').value;
-  const city   = ($('f-city').value || '').toLowerCase().trim();
-  const state  = ($('f-state').value || '').toUpperCase().trim();
-  const from   = $('f-date-from').value;
-  const to     = $('f-date-to').value;
-  const woman    = $('f-woman').checked;
-  const veteran  = $('f-veteran').checked;
-  const minority = $('f-minority').checked;
-  const disab    = $('f-disability').checked;
+  const q       = ($('search-input').value || '').toLowerCase().trim();
+  const type    = $('f-type').value;
+  const city    = ($('f-city').value || '').toLowerCase().trim();
+  const state   = $('f-state').value;
+  const from    = $('f-date-from').value;
+  const to      = $('f-date-to').value;
+  const hasLiens   = $('f-has-liens').checked;
+  const isForeign  = $('f-foreign').checked;
+  const isNetwork  = $('f-network').checked;
+  const hasEmail   = $('f-email').checked;
+  const isRecent   = $('f-recent').checked;
+  const twoYrsAgo  = new Date(); twoYrsAgo.setFullYear(twoYrsAgo.getFullYear() - 2);
+  const twoYrsStr  = twoYrsAgo.toISOString().slice(0,10);
 
   filtered = ALL.filter(b => {
-    if (q && !( (b.n||'').toLowerCase().includes(q) || (b.an||'').includes(q) ||
-                (b.ci||'').toLowerCase().includes(q) || (b.nc||'').includes(q) )) return false;
-    if (type  && b.bt !== type)  return false;
+    if (q) {
+      const name = (b.n||'').toLowerCase();
+      const acct = (b.an||'').toLowerCase();
+      const ci   = (b.ci||'').toLowerCase();
+      const nc   = (b.nc||'').toLowerCase();
+      if (!name.includes(q) && !acct.includes(q) && !ci.includes(q) && !nc.includes(q)) return false;
+    }
+    if (type  && b.bt !== type) return false;
     if (city  && !(b.ci||'').toLowerCase().includes(city)) return false;
     if (state && b.sf !== state) return false;
     if (from  && (b.dr||'') < from) return false;
     if (to    && (b.dr||'') > to)   return false;
-    if (woman    && !b.wo) return false;
-    if (veteran  && !b.ve) return false;
-    if (minority && !b.mi) return false;
-    if (disab    && !b.di) return false;
+    if (hasLiens  && !LIEN_BIZ_SET[b.id]) return false;
+    if (isForeign && (b.sf||'').toUpperCase() === 'CT') return false;
+    if (isNetwork && !isNetworkOwner(b.id)) return false;
+    if (hasEmail  && !b.em) return false;
+    if (isRecent  && (b.dr||'') < twoYrsStr) return false;
     return true;
   });
 
+  curPage = 1;
   sortResults();
+}
+
+function isNetworkOwner(bizId) {
+  if (!PRINCIPALS) return false;
+  const prins = PRINCIPALS[bizId] || [];
+  return prins.some(p => {
+    if (!p.n) return false;
+    const key = p.n.trim().toLowerCase();
+    return OWNER_INDEX[key] && OWNER_INDEX[key].size >= 3;
+  });
 }
 
 function resetFilters() {
@@ -511,7 +670,7 @@ function resetFilters() {
   $('f-state').value = '';
   $('f-date-from').value = '';
   $('f-date-to').value = '';
-  ['f-woman','f-veteran','f-minority','f-disability'].forEach(id => $(id).checked = false);
+  ['f-has-liens','f-foreign','f-network','f-email','f-recent'].forEach(id => $(id).checked = false);
   curPage = 1;
   applyFilters();
 }
@@ -544,24 +703,79 @@ function statusBadge(st) {
   return `<span class="badge badge-gray">${esc(st||'—')}</span>`;
 }
 
+function rowFlags(b) {
+  const flags = [];
+  if (LIEN_BIZ_SET[b.id]) flags.push(`<span class="badge badge-red" title="Has active UCC liens">⚠ Liens</span>`);
+  if (isNetworkOwner(b.id)) flags.push(`<span class="badge badge-purple" title="Owner controls 3+ businesses">🔗 Network</span>`);
+  if ((b.sf||'').toUpperCase() !== 'CT' && b.sf) flags.push(`<span class="badge badge-orange" title="Foreign entity">Foreign</span>`);
+  return flags.join(' ');
+}
+
 function renderResults() {
   const total = filtered.length;
   $('result-count').textContent = fmt(total) + ' result' + (total !== 1 ? 's' : '');
   const start = (curPage - 1) * PAGE_SIZE;
   const slice = filtered.slice(start, start + PAGE_SIZE);
-  $('results-body').innerHTML = slice.map(b =>
-    `<tr onclick="openDetail('${esc(b.id)}')">
+
+  $('results-body').innerHTML = slice.map(b => {
+    const checked = selectedIds.has(b.id) ? 'checked' : '';
+    const selClass = selectedIds.has(b.id) ? 'selected' : '';
+    return `<tr class="${selClass}" onclick="openDetail('${esc(b.id)}')">
+      <td onclick="event.stopPropagation()"><input type="checkbox" ${checked} onchange="toggleSelect('${esc(b.id)}',this)" style="accent-color:var(--accent)"></td>
       <td title="${esc(b.n)}">${esc(b.n||'—')}</td>
       <td>${esc(b.bt||'—')}</td>
-      <td>${esc(b.ci||'—')}</td>
+      <td>${esc(toTitleCase(b.ci||''))}</td>
       <td>${esc(b.sf||b.sa||'—')}</td>
       <td>${fmtDate(b.dr)}</td>
       <td>${statusBadge(b.st)}</td>
-    </tr>`
-  ).join('');
+      <td>${rowFlags(b)}</td>
+    </tr>`;
+  }).join('');
+
+  // Sync select-all checkbox
+  const allChecked = slice.length > 0 && slice.every(b => selectedIds.has(b.id));
+  $('select-all').checked = allChecked;
+  $('select-all').indeterminate = !allChecked && slice.some(b => selectedIds.has(b.id));
+
+  updateSelectionBar();
   renderPagination(total);
 }
 
+// ── Row selection ──────────────────────────────────────────────────────────
+function toggleSelect(id, cb) {
+  if (cb.checked) selectedIds.add(id);
+  else selectedIds.delete(id);
+  updateSelectionBar();
+  const row = cb.closest('tr');
+  if (row) row.classList.toggle('selected', cb.checked);
+}
+
+function toggleSelectAll(cb) {
+  const start = (curPage - 1) * PAGE_SIZE;
+  const slice = filtered.slice(start, start + PAGE_SIZE);
+  slice.forEach(b => {
+    if (cb.checked) selectedIds.add(b.id);
+    else selectedIds.delete(b.id);
+  });
+  renderResults();
+}
+
+function clearSelection() {
+  selectedIds.clear();
+  renderResults();
+}
+
+function updateSelectionBar() {
+  const bar = $('selection-bar');
+  if (selectedIds.size > 0) {
+    bar.classList.add('visible');
+    $('sel-count-text').textContent = fmt(selectedIds.size) + ' selected';
+  } else {
+    bar.classList.remove('visible');
+  }
+}
+
+// ── Pagination ─────────────────────────────────────────────────────────────
 function renderPagination(total) {
   const totalPages = Math.ceil(total / PAGE_SIZE);
   if (totalPages <= 1) { $('pagination').innerHTML = ''; return; }
@@ -600,27 +814,39 @@ async function openDetail(id) {
   const badges = [];
   if (biz.bt) badges.push(`<span class="badge badge-blue">${esc(biz.bt)}</span>`);
   if (biz.st) badges.push(statusBadge(biz.st));
-  if (biz.wo) badges.push(`<span class="badge badge-purple">Woman-Owned</span>`);
-  if (biz.ve) badges.push(`<span class="badge badge-yellow">Veteran-Owned</span>`);
-  if (biz.mi) badges.push(`<span class="badge badge-green">Minority-Owned</span>`);
-  if (biz.di) badges.push(`<span class="badge badge-gray">Disability-Owned</span>`);
+  if (LIEN_BIZ_SET[biz.id]) badges.push(`<span class="badge badge-red">⚠ Active Liens</span>`);
+  if ((biz.sf||'').toUpperCase() !== 'CT' && biz.sf) badges.push(`<span class="badge badge-orange">Foreign Entity</span>`);
   $('d-meta').innerHTML = badges.join('');
 
-  const fields = [
-    ['Account Number',     biz.an],
-    ['Business Type',      biz.bt],
-    ['Status',             biz.st],
-    ['Date Registered',    fmtDate(biz.dr)],
-    ['State of Formation', biz.sf],
-    ['Address',            [biz.ad, biz.ci, biz.sa, biz.zp].filter(Boolean).join(', ')],
-    ['Email',              biz.em],
-    ['NAICS Code',         biz.nc],
-  ].filter(([,v]) => v);
-  $('d-grid').innerHTML = fields.map(([label, val]) =>
-    `<div><div class="detail-field-label">${esc(label)}</div><div class="detail-field-value">${esc(val)}</div></div>`
-  ).join('');
+  // Build address string
+  const addrParts = [biz.ad, biz.ci ? toTitleCase(biz.ci) : '', biz.sa, biz.zp].filter(Boolean);
+  const addrStr = addrParts.join(', ');
 
-  // Show spinners
+  // Filing velocity
+  const filingVelocity = calcVelocity(biz);
+
+  const fields = [
+    { label: 'Account Number', val: biz.an, copy: true },
+    { label: 'Business Type',  val: biz.bt },
+    { label: 'Status',         val: biz.st },
+    { label: 'Date Registered', val: fmtDate(biz.dr) },
+    { label: 'State of Formation', val: biz.sf },
+    { label: 'Address', val: addrStr, map: addrStr, copy: true },
+    { label: 'Email', val: biz.em, copy: true },
+    { label: 'NAICS Code', val: biz.nc, copy: true },
+    { label: 'Filing Activity', val: filingVelocity.label, velocity: filingVelocity },
+  ].filter(f => f.val);
+
+  $('d-grid').innerHTML = fields.map(f => {
+    let valHtml = `<span>${esc(f.val)}</span>`;
+    if (f.copy) valHtml += `<button class="copy-btn" onclick="copyText('${esc(f.val)}')" title="Copy">⎘</button>`;
+    if (f.map)  valHtml += `<a class="map-link" href="${mapsLink(f.map)}" target="_blank" rel="noopener" title="Open in Google Maps">📍 Map</a>`;
+    let extra = '';
+    if (f.velocity) extra = renderVelocityBar(f.velocity);
+    return `<div><div class="detail-field-label">${esc(f.label)}</div><div class="detail-field-value">${valHtml}</div>${extra}</div>`;
+  }).join('');
+
+  // Spinners
   const spinner = `<div class="loading-detail"><span class="spinner"></span>Loading detail data…</div>`;
   $('tab-principals').innerHTML = spinner;
   $('tab-agents').innerHTML     = spinner;
@@ -637,51 +863,171 @@ async function openDetail(id) {
     return;
   }
 
-  // Principals
-  const prins = (PRINCIPALS || {})[id] || [];
-  $('tab-principals').innerHTML = prins.length
-    ? `<div class="table-wrap"><table class="info-table">
-        <thead><tr><th>Name</th><th>Title / Designation</th><th>Address</th></tr></thead>
-        <tbody>${prins.map(p => `<tr>
-          <td>${esc(p.n||'—')}</td>
-          <td>${esc(p.d||'—')}</td>
-          <td>${esc([p.ad,p.ci,p.sa,p.zp].filter(Boolean).join(', ')||'—')}</td>
-        </tr>`).join('')}</tbody>
-      </table></div>`
-    : '<div class="empty-state">No principals on file</div>';
+  renderPrincipals(biz, id);
+  renderAgents(id);
+  renderLiens(biz);
+}
 
-  // Agents
-  const agents = (AGENTS || {})[id] || [];
-  $('tab-agents').innerHTML = agents.length
-    ? `<div class="table-wrap"><table class="info-table">
-        <thead><tr><th>Agent Name</th><th>Phone</th><th>Email</th><th>Address</th></tr></thead>
-        <tbody>${agents.map(a => `<tr>
-          <td>${esc(a.n||'—')}</td>
-          <td>${esc(a.ph||'—')}</td>
-          <td>${esc(a.em||'—')}</td>
-          <td>${esc([a.ad,a.ci,a.sa,a.zp].filter(Boolean).join(', ')||'—')}</td>
-        </tr>`).join('')}</tbody>
-      </table></div>`
-    : '<div class="empty-state">No registered agents on file</div>';
+function calcVelocity(biz) {
+  // Use registration year as a proxy for age; filing count from meta if available
+  const year = biz.dr ? parseInt(biz.dr.slice(0,4)) : 0;
+  const age = year > 1900 ? (new Date().getFullYear() - year) : 0;
+  // Classify by age
+  if (age === 0) return { label: 'New (< 1 year)', level: 5 };
+  if (age <= 2)  return { label: 'Recent (1–2 years)', level: 4 };
+  if (age <= 5)  return { label: 'Established (3–5 years)', level: 3 };
+  if (age <= 15) return { label: 'Mature (6–15 years)', level: 2 };
+  return { label: 'Long-standing (15+ years)', level: 1 };
+}
 
-  // Liens — match by business name
+function renderVelocityBar(v) {
+  const dots = [1,2,3,4,5].map(i => {
+    const cls = i <= v.level ? (v.level >= 4 ? 'active' : 'active') : '';
+    return `<div class="velocity-dot ${cls}"></div>`;
+  }).join('');
+  return `<div class="velocity-bar">${dots}<span class="velocity-label">${esc(v.label)}</span></div>`;
+}
+
+function renderPrincipals(biz, bizId) {
+  const prins = (PRINCIPALS || {})[bizId] || [];
+  if (!prins.length) {
+    $('tab-principals').innerHTML = '<div class="empty-state">No principals on file</div>';
+    return;
+  }
+
+  const rows = prins.map(p => {
+    const name = p.n || '—';
+    const addr = [p.ad, p.ci ? toTitleCase(p.ci) : '', p.sa, p.zp].filter(Boolean).join(', ');
+    const normName = (p.n||'').trim().toLowerCase();
+    const otherBizIds = OWNER_INDEX[normName] ? [...OWNER_INDEX[normName]].filter(id => id !== bizId) : [];
+    const networkCount = otherBizIds.length;
+
+    // Research links
+    const q = encodeURIComponent(`"${name}" Connecticut`);
+    const researchLinks = `
+      <div class="research-links">
+        <a class="research-link" href="https://www.google.com/search?q=${q}+site%3Alinkedin.com" target="_blank" rel="noopener">🔗 LinkedIn</a>
+        <a class="research-link" href="https://www.google.com/search?q=${q}+%22address%22+%22phone%22" target="_blank" rel="noopener">📞 Contact</a>
+        <a class="research-link" href="https://www.whitepages.com/name/${encodeURIComponent((p.n||'').replace(/\s+/g,'-'))}/CT" target="_blank" rel="noopener">📋 Whitepages</a>
+        <a class="research-link" href="https://www.google.com/search?q=${q}+%22age%22+OR+%22born%22+OR+%22birthday%22" target="_blank" rel="noopener">🎂 Age</a>
+        <a class="research-link" href="https://www.google.com/search?q=${q}+%22email%22+OR+%22@%22" target="_blank" rel="noopener">✉ Email</a>
+        <a class="research-link" href="https://www.google.com/search?q=${q}+site%3Afacebook.com+OR+site%3Ainstagram.com" target="_blank" rel="noopener">📱 Social</a>
+      </div>`;
+
+    // Network panel
+    let networkHtml = '';
+    if (networkCount > 0) {
+      const panelId = 'np-' + Math.random().toString(36).slice(2);
+      const otherBizList = otherBizIds.slice(0, 20).map(oid => {
+        const ob = ALL.find(x => x.id === oid);
+        if (!ob) return '';
+        return `<div class="owner-biz-link" onclick="openDetail('${esc(oid)}')">${esc(ob.n||oid)}<span class="owner-biz-meta"> — ${esc(ob.bt||'')} · ${esc(toTitleCase(ob.ci||''))}</span></div>`;
+      }).join('');
+      networkHtml = `
+        <button class="network-badge" onclick="togglePanel('${panelId}')">🔗 ${networkCount} other business${networkCount>1?'es':''}</button>
+        <div class="owner-panel" id="${panelId}" style="display:none">
+          <div class="owner-panel-title">${esc(name)} is also on file for:</div>
+          ${otherBizList}
+          ${otherBizIds.length > 20 ? `<div class="owner-biz-meta" style="padding-top:6px">…and ${otherBizIds.length-20} more</div>` : ''}
+        </div>`;
+    }
+
+    const addrMapHtml = addr
+      ? `<a href="${mapsLink(addr)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">📍 Map</a>`
+      : '';
+
+    return `<tr>
+      <td style="max-width:none;white-space:normal">
+        <div style="font-weight:500">${esc(name)}</div>
+        ${researchLinks}
+        ${networkHtml}
+      </td>
+      <td>${esc(p.d||'—')}</td>
+      <td style="max-width:none;white-space:normal">
+        ${esc(addr||'—')} ${addrMapHtml}
+      </td>
+    </tr>`;
+  }).join('');
+
+  $('tab-principals').innerHTML = `<div class="table-wrap"><table class="info-table">
+    <thead><tr><th>Name &amp; Research</th><th>Title / Designation</th><th>Address</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+function renderAgents(bizId) {
+  const agents = (AGENTS || {})[bizId] || [];
+  if (!agents.length) {
+    $('tab-agents').innerHTML = '<div class="empty-state">No registered agents on file</div>';
+    return;
+  }
+
+  const rows = agents.map(a => {
+    const addr = [a.ad, a.ci ? toTitleCase(a.ci) : '', a.sa, a.zp].filter(Boolean).join(', ');
+    const addrMapHtml = addr
+      ? `<a href="${mapsLink(addr)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">📍 Map</a>`
+      : '';
+    const normName = (a.n||'').trim().toLowerCase();
+    const otherBizIds = OWNER_INDEX[normName] ? [...OWNER_INDEX[normName]].filter(id => id !== bizId) : [];
+    const networkCount = otherBizIds.length;
+    let networkHtml = '';
+    if (networkCount > 0) {
+      const panelId = 'ap-' + Math.random().toString(36).slice(2);
+      const list = otherBizIds.slice(0,10).map(oid => {
+        const ob = ALL.find(x => x.id === oid);
+        if (!ob) return '';
+        return `<div class="owner-biz-link" onclick="openDetail('${esc(oid)}')">${esc(ob.n||oid)}<span class="owner-biz-meta"> — ${esc(ob.bt||'')} · ${esc(toTitleCase(ob.ci||''))}</span></div>`;
+      }).join('');
+      networkHtml = `
+        <button class="network-badge" onclick="togglePanel('${panelId}')">🔗 Agent for ${networkCount} other business${networkCount>1?'es':''}</button>
+        <div class="owner-panel" id="${panelId}" style="display:none">
+          <div class="owner-panel-title">${esc(a.n||'')} is also registered agent for:</div>
+          ${list}
+          ${otherBizIds.length > 10 ? `<div class="owner-biz-meta" style="padding-top:6px">…and ${otherBizIds.length-10} more</div>` : ''}
+        </div>`;
+    }
+    return `<tr>
+      <td style="max-width:none;white-space:normal">
+        <div style="font-weight:500">${esc(a.n||'—')}</div>
+        ${networkHtml}
+      </td>
+      <td>${a.ph ? `<a href="tel:${esc(a.ph)}">${esc(a.ph)}</a>` : '—'}</td>
+      <td>${a.em ? `<a href="mailto:${esc(a.em)}">${esc(a.em)}</a>` : '—'}</td>
+      <td style="max-width:none;white-space:normal">${esc(addr||'—')} ${addrMapHtml}</td>
+    </tr>`;
+  }).join('');
+
+  $('tab-agents').innerHTML = `<div class="table-wrap"><table class="info-table">
+    <thead><tr><th>Agent Name</th><th>Phone</th><th>Email</th><th>Address</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div>`;
+}
+
+function renderLiens(biz) {
   const bizName = (biz.n||'').toUpperCase().trim();
   const bizLiens = (LIENS || []).filter(l =>
     (l.dn||'').toUpperCase().includes(bizName) || (l.sn||'').toUpperCase().includes(bizName)
   );
-  $('tab-liens').innerHTML = bizLiens.length
-    ? `<div class="table-wrap"><table class="info-table">
-        <thead><tr><th>File #</th><th>Status</th><th>Secured Party</th><th>Debtor</th><th>Filed</th><th>Lapses</th></tr></thead>
-        <tbody>${bizLiens.map(l => `<tr>
-          <td>${esc(l.fn||'—')}</td>
-          <td>${esc(l.ls||'—')}</td>
-          <td>${esc(l.sn||'—')}</td>
-          <td>${esc(l.dn||'—')}</td>
-          <td>${fmtDate(l.fd)}</td>
-          <td>${fmtDate(l.ld)}</td>
-        </tr>`).join('')}</tbody>
-      </table></div>`
-    : '<div class="empty-state">No UCC lien filings found</div>';
+  if (!bizLiens.length) {
+    $('tab-liens').innerHTML = '<div class="empty-state">No UCC lien filings found</div>';
+    return;
+  }
+  $('tab-liens').innerHTML = `<div class="table-wrap"><table class="info-table">
+    <thead><tr><th>File #</th><th>Status</th><th>Secured Party</th><th>Debtor</th><th>Filed</th><th>Lapses</th></tr></thead>
+    <tbody>${bizLiens.map(l => `<tr>
+      <td>${esc(l.fn||'—')}</td>
+      <td>${esc(l.ls||'—')}</td>
+      <td>${esc(l.sn||'—')}</td>
+      <td>${esc(l.dn||'—')}</td>
+      <td>${fmtDate(l.fd)}</td>
+      <td>${fmtDate(l.ld)}</td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+function togglePanel(id) {
+  const el = document.getElementById(id);
+  if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 
 function closeDetail() {
@@ -696,11 +1042,14 @@ function showTab(name) {
 }
 
 // ── CSV Export ─────────────────────────────────────────────────────────────
-function exportCSV() {
+function exportSelectedCSV() {
+  const toExport = selectedIds.size > 0
+    ? filtered.filter(b => selectedIds.has(b.id))
+    : filtered;
   const cols = ['Account Number','Name','Business Type','Status','City','State','ZIP','Email','Date Registered','State of Formation','NAICS'];
   const rows = [cols.join(',')];
-  filtered.forEach(b => {
-    rows.push([b.an,b.n,b.bt,b.st,b.ci,b.sa,b.zp,b.em,b.dr,b.sf,b.nc]
+  toExport.forEach(b => {
+    rows.push([b.an, b.n, b.bt, b.st, b.ci, b.sa, b.zp, b.em, b.dr, b.sf, b.nc]
       .map(v => '"' + (v||'').toString().replace(/"/g,'""') + '"').join(','));
   });
   const blob = new Blob([rows.join('\n')], {type:'text/csv'});
@@ -708,6 +1057,7 @@ function exportCSV() {
   a.href = URL.createObjectURL(blob);
   a.download = 'ct_businesses_' + new Date().toISOString().slice(0,10) + '.csv';
   a.click();
+  showToast('Exported ' + fmt(toExport.length) + ' businesses');
 }
 
 // ── Boot ───────────────────────────────────────────────────────────────────
