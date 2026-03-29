@@ -512,57 +512,44 @@ function loadDetailData() {
     PRINCIPALS = {};
     AGENTS = {};
     LIENS = [];
+    OWNER_INDEX = {};
+    AGENT_INDEX = {};
+
+    // Build indexes incrementally as each chunk arrives — no separate post-processing pass
+    function indexPrinChunk(chunk) {
+      Object.assign(PRINCIPALS, chunk);
+      Object.entries(chunk).forEach(([bizId, prins]) => {
+        prins.forEach(p => {
+          if (!p.n) return;
+          const key = p.n.trim().toLowerCase();
+          if (!OWNER_INDEX[key]) OWNER_INDEX[key] = new Set();
+          OWNER_INDEX[key].add(bizId);
+        });
+      });
+    }
+
+    function indexAgtChunk(chunk) {
+      Object.assign(AGENTS, chunk);
+      Object.entries(chunk).forEach(([bizId, agts]) => {
+        agts.forEach(a => {
+          if (!a.n) return;
+          const key = a.n.trim().toLowerCase();
+          if (!AGENT_INDEX[key]) AGENT_INDEX[key] = new Set();
+          AGENT_INDEX[key].add(bizId);
+        });
+      });
+    }
 
     await Promise.all([
-      loadChunks(prinTotal, 'prin', '__PRIN_CHUNK', chunk => Object.assign(PRINCIPALS, chunk)),
-      loadChunks(agtTotal,  'agt',  '__AGT_CHUNK',  chunk => Object.assign(AGENTS, chunk)),
+      loadChunks(prinTotal, 'prin', '__PRIN_CHUNK', indexPrinChunk),
+      loadChunks(agtTotal,  'agt',  '__AGT_CHUNK',  indexAgtChunk),
       loadChunks(lienTotal, 'lien', '__LIEN_CHUNK', chunk => { LIENS = LIENS.concat(chunk); }),
     ]);
 
-    // Build owner/agent network indexes and lien set asynchronously so they don't freeze the UI
-    await buildOwnerIndex();
-    await buildAgentIndex();
+    // Only lien set still needs a post-processing pass
     await buildLienBizSet();
   })();
   return detailLoadPromise;
-}
-
-async function buildOwnerIndex() {
-  OWNER_INDEX = {};
-  const entries = Object.entries(PRINCIPALS);
-  const CHUNK = 5000;
-  for (let i = 0; i < entries.length; i += CHUNK) {
-    const end = Math.min(i + CHUNK, entries.length);
-    for (let j = i; j < end; j++) {
-      const [bizId, prins] = entries[j];
-      prins.forEach(p => {
-        if (!p.n) return;
-        const key = p.n.trim().toLowerCase();
-        if (!OWNER_INDEX[key]) OWNER_INDEX[key] = new Set();
-        OWNER_INDEX[key].add(bizId);
-      });
-    }
-    await yieldToMain();
-  }
-}
-
-async function buildAgentIndex() {
-  AGENT_INDEX = {};
-  const entries = Object.entries(AGENTS);
-  const CHUNK = 5000;
-  for (let i = 0; i < entries.length; i += CHUNK) {
-    const end = Math.min(i + CHUNK, entries.length);
-    for (let j = i; j < end; j++) {
-      const [bizId, agts] = entries[j];
-      agts.forEach(a => {
-        if (!a.n) return;
-        const key = a.n.trim().toLowerCase();
-        if (!AGENT_INDEX[key]) AGENT_INDEX[key] = new Set();
-        AGENT_INDEX[key].add(bizId);
-      });
-    }
-    await yieldToMain();
-  }
 }
 
 async function buildLienBizSet() {
