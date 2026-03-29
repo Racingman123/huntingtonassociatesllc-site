@@ -384,8 +384,10 @@ let AGENTS     = null;
 let LIENS      = null;
 let detailLoadPromise = null;
 
-// Owner network index: normalizedName -> [bizId, ...]
+// Owner network index: normalizedName -> Set of bizIds
 let OWNER_INDEX = {};
+// Agent network index: normalizedName -> Set of bizIds
+let AGENT_INDEX = {};
 // Lien set: bizId -> true (for fast filter)
 let LIEN_BIZ_SET = {};
 
@@ -513,8 +515,9 @@ function loadDetailData() {
       loadChunks(lienTotal, 'lien', '__LIEN_CHUNK', chunk => { LIENS = LIENS.concat(chunk); }),
     ]);
 
-    // Build owner network index and lien set asynchronously so they don't freeze the UI
+    // Build owner/agent network indexes and lien set asynchronously so they don't freeze the UI
     await buildOwnerIndex();
+    await buildAgentIndex();
     await buildLienBizSet();
   })();
   return detailLoadPromise;
@@ -533,6 +536,25 @@ async function buildOwnerIndex() {
         const key = p.n.trim().toLowerCase();
         if (!OWNER_INDEX[key]) OWNER_INDEX[key] = new Set();
         OWNER_INDEX[key].add(bizId);
+      });
+    }
+    await yieldToMain();
+  }
+}
+
+async function buildAgentIndex() {
+  AGENT_INDEX = {};
+  const entries = Object.entries(AGENTS);
+  const CHUNK = 5000;
+  for (let i = 0; i < entries.length; i += CHUNK) {
+    const end = Math.min(i + CHUNK, entries.length);
+    for (let j = i; j < end; j++) {
+      const [bizId, agts] = entries[j];
+      agts.forEach(a => {
+        if (!a.n) return;
+        const key = a.n.trim().toLowerCase();
+        if (!AGENT_INDEX[key]) AGENT_INDEX[key] = new Set();
+        AGENT_INDEX[key].add(bizId);
       });
     }
     await yieldToMain();
@@ -1027,22 +1049,23 @@ function renderAgents(bizId) {
       ? `<a href="${mapsLink(addr)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">📍 Map</a>`
       : '';
     const normName = (a.n||'').trim().toLowerCase();
-    const otherBizIds = OWNER_INDEX[normName] ? [...OWNER_INDEX[normName]].filter(id => id !== bizId) : [];
+    // Use AGENT_INDEX (built from agents data) for accurate cross-business lookup
+    const otherBizIds = AGENT_INDEX[normName] ? [...AGENT_INDEX[normName]].filter(id => id !== bizId) : [];
     const networkCount = otherBizIds.length;
     let networkHtml = '';
     if (networkCount > 0) {
       const panelId = 'ap-' + Math.random().toString(36).slice(2);
-      const list = otherBizIds.slice(0,10).map(oid => {
+      const list = otherBizIds.slice(0, 20).map(oid => {
         const ob = ALL.find(x => x.id === oid);
         if (!ob) return '';
         return `<div class="owner-biz-link" onclick="openDetail('${esc(oid)}')">${esc(ob.n||oid)}<span class="owner-biz-meta"> — ${esc(ob.bt||'')} · ${esc(toTitleCase(ob.ci||''))}</span></div>`;
       }).join('');
       networkHtml = `
-        <button class="network-badge" onclick="togglePanel('${panelId}')">🔗 Agent for ${networkCount} other business${networkCount>1?'es':''}</button>
+        <button class="network-badge" onclick="togglePanel('${panelId}')">🔗 Registered agent for ${networkCount} other business${networkCount>1?'es':''}</button>
         <div class="owner-panel" id="${panelId}" style="display:none">
           <div class="owner-panel-title">${esc(a.n||'')} is also registered agent for:</div>
           ${list}
-          ${otherBizIds.length > 10 ? `<div class="owner-biz-meta" style="padding-top:6px">…and ${otherBizIds.length-10} more</div>` : ''}
+          ${otherBizIds.length > 20 ? `<div class="owner-biz-meta" style="padding-top:6px">…and ${otherBizIds.length-20} more</div>` : ''}
         </div>`;
     }
     return `<tr>
@@ -1071,19 +1094,36 @@ function renderLiens(biz) {
     $('tab-liens').innerHTML = '<div class="empty-state">No UCC lien filings found</div>';
     return;
   }
-  $('tab-liens').innerHTML = `<div class="table-wrap"><table class="info-table">
-    <thead><tr><th>File #</th><th>Status</th><th>Secured Party</th><th>Debtor</th><th>Filed</th><th>Lapses</th></tr></thead>
-    <tbody>${bizLiens.map(l => `<tr>
-      <td>${esc(l.fn||'—')}</td>
-      <td>${esc(l.ls||'—')}</td>
-      <td>${esc(l.sn||'—')}</td>
-      <td>${esc(l.dn||'—')}</td>
-      <td>${fmtDate(l.fd)}</td>
-      <td>${fmtDate(l.ld)}</td>
-    </tr>`).join('')}</tbody>
-  </table></div>`;
-}
 
+  // Build links to the CT SOS UCC search and a Google fallback for each file number.
+  function lienLink(fn) {
+    if (!fn || fn === '\u2014') return esc(fn||'\u2014');
+    var ctUrl = 'https://service.ct.gov/business/s/ucc-lien-search?fileNumber=' + encodeURIComponent(fn);
+    var gUrl  = 'https://www.google.com/search?q=' + encodeURIComponent('Connecticut UCC lien "' + fn + '"');
+    return '<span style="font-weight:500">' + esc(fn) + '</span>'
+         + '<div style="margin-top:3px;display:flex;gap:6px;flex-wrap:wrap">'
+         + '<a class="research-link" href="' + ctUrl + '" target="_blank" rel="noopener">\U0001f3db CT SOS</a>'
+         + '<a class="research-link" href="' + gUrl  + '" target="_blank" rel="noopener">\U0001f50d Google</a>'
+         + '</div>';
+  }
+
+  var rows = bizLiens.map(function(l) {
+    return '<tr>'
+      + '<td style="min-width:160px">' + lienLink(l.fn||'\u2014') + '</td>'
+      + '<td style="font-size:11px;color:var(--text2)">' + esc(l.ft||'\u2014') + '</td>'
+      + '<td>' + statusBadge(l.ls||'\u2014') + '</td>'
+      + '<td>' + esc(l.sn||'\u2014') + '</td>'
+      + '<td>' + esc(l.dn||'\u2014') + '</td>'
+      + '<td>' + fmtDate(l.fd) + '</td>'
+      + '<td>' + fmtDate(l.ld) + '</td>'
+      + '</tr>';
+  }).join('');
+
+  $('tab-liens').innerHTML = '<div class="table-wrap"><table class="info-table">'
+    + '<thead><tr><th>File # &amp; Links</th><th>Type</th><th>Status</th><th>Secured Party</th><th>Debtor</th><th>Filed</th><th>Lapses</th></tr></thead>'
+    + '<tbody>' + rows + '</tbody>'
+    + '</table></div>';
+}
 function togglePanel(id) {
   const el = document.getElementById(id);
   if (el) el.style.display = el.style.display === 'none' ? 'block' : 'none';
