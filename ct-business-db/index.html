@@ -999,7 +999,7 @@ function renderPrincipals(biz, bizId) {
     let networkHtml = '';
     if (networkCount > 0) {
       const panelId = 'np-' + Math.random().toString(36).slice(2);
-      const otherBizList = otherBizIds.slice(0, 20).map(oid => {
+      const otherBizList = otherBizIds.map(oid => {
         const ob = ALL.find(x => x.id === oid);
         if (!ob) return '';
         return `<div class="owner-biz-link" onclick="openDetail('${esc(oid)}')">${esc(ob.n||oid)}<span class="owner-biz-meta"> — ${esc(ob.bt||'')} · ${esc(toTitleCase(ob.ci||''))}</span></div>`;
@@ -1007,9 +1007,8 @@ function renderPrincipals(biz, bizId) {
       networkHtml = `
         <button class="network-badge" onclick="togglePanel('${panelId}')">🔗 ${networkCount} other business${networkCount>1?'es':''}</button>
         <div class="owner-panel" id="${panelId}" style="display:none">
-          <div class="owner-panel-title">${esc(name)} is also on file for:</div>
+          <div class="owner-panel-title">${esc(name)} is also on file for (${networkCount} total):</div>
           ${otherBizList}
-          ${otherBizIds.length > 20 ? `<div class="owner-biz-meta" style="padding-top:6px">…and ${otherBizIds.length-20} more</div>` : ''}
         </div>`;
     }
 
@@ -1055,7 +1054,7 @@ function renderAgents(bizId) {
     let networkHtml = '';
     if (networkCount > 0) {
       const panelId = 'ap-' + Math.random().toString(36).slice(2);
-      const list = otherBizIds.slice(0, 20).map(oid => {
+      const list = otherBizIds.map(oid => {
         const ob = ALL.find(x => x.id === oid);
         if (!ob) return '';
         return `<div class="owner-biz-link" onclick="openDetail('${esc(oid)}')">${esc(ob.n||oid)}<span class="owner-biz-meta"> — ${esc(ob.bt||'')} · ${esc(toTitleCase(ob.ci||''))}</span></div>`;
@@ -1063,9 +1062,8 @@ function renderAgents(bizId) {
       networkHtml = `
         <button class="network-badge" onclick="togglePanel('${panelId}')">🔗 Registered agent for ${networkCount} other business${networkCount>1?'es':''}</button>
         <div class="owner-panel" id="${panelId}" style="display:none">
-          <div class="owner-panel-title">${esc(a.n||'')} is also registered agent for:</div>
+          <div class="owner-panel-title">${esc(a.n||'')} is also registered agent for (${networkCount} total):</div>
           ${list}
-          ${otherBizIds.length > 20 ? `<div class="owner-biz-meta" style="padding-top:6px">…and ${otherBizIds.length-20} more</div>` : ''}
         </div>`;
     }
     return `<tr>
@@ -1096,14 +1094,18 @@ function renderLiens(biz) {
   }
 
   // Build links to the CT SOS UCC search and a Google fallback for each file number.
+  // The CT SOS portal (Salesforce) does not support deep-linking by file number, so we
+  // link to the search page and show the file number as a copy-able hint.
   function lienLink(fn) {
     if (!fn || fn === '\u2014') return esc(fn||'\u2014');
-    var ctUrl = 'https://service.ct.gov/business/s/ucc-lien-search?fileNumber=' + encodeURIComponent(fn);
-    var gUrl  = 'https://www.google.com/search?q=' + encodeURIComponent('Connecticut UCC lien "' + fn + '"');
-    return '<span style="font-weight:500">' + esc(fn) + '</span>'
+    // CT SOS: link to the lien search page; user selects "Lien number" and pastes the number
+    var ctUrl = 'https://service.ct.gov/business/s/onlineenquiry?language=en_US';
+    // Google: search for the exact file number with Connecticut context
+    var gUrl  = 'https://www.google.com/search?q=' + encodeURIComponent('"' + fn + '" Connecticut UCC lien');
+    return '<span style="font-weight:500;font-family:monospace">' + esc(fn) + '</span>'
          + '<div style="margin-top:3px;display:flex;gap:6px;flex-wrap:wrap">'
-         + '<a class="research-link" href="' + ctUrl + '" target="_blank" rel="noopener">\U0001f3db CT SOS</a>'
-         + '<a class="research-link" href="' + gUrl  + '" target="_blank" rel="noopener">\U0001f50d Google</a>'
+         + '<a class="research-link" href="' + ctUrl + '" target="_blank" rel="noopener" title="Search by &quot;Lien number&quot; and enter: ' + esc(fn) + '">🏛 CT SOS Search</a>'
+         + '<a class="research-link" href="' + gUrl  + '" target="_blank" rel="noopener">🔍 Google</a>'
          + '</div>';
   }
 
