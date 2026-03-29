@@ -238,14 +238,19 @@
         <label class="filter-label">State of Formation</label>
         <select class="filter-select" id="f-state" onchange="applyFilters()">
           <option value="">All states</option>
-          <option value="CT">CT — Connecticut</option>
-          <option value="DE">DE — Delaware</option>
-          <option value="FL">FL — Florida</option>
-          <option value="MA">MA — Massachusetts</option>
-          <option value="NY">NY — New York</option>
-          <option value="NJ">NJ — New Jersey</option>
-          <option value="TX">TX — Texas</option>
-          <option value="CA">CA — California</option>
+          <option value="Connecticut">Connecticut (domestic)</option>
+          <option value="Delaware">Delaware</option>
+          <option value="Florida">Florida</option>
+          <option value="Massachusetts">Massachusetts</option>
+          <option value="New York">New York</option>
+          <option value="New Jersey">New Jersey</option>
+          <option value="Texas">Texas</option>
+          <option value="California">California</option>
+          <option value="Wyoming">Wyoming</option>
+          <option value="Nevada">Nevada</option>
+          <option value="Pennsylvania">Pennsylvania</option>
+          <option value="Rhode Island">Rhode Island</option>
+          <option value="Virginia">Virginia</option>
         </select>
       </div>
 
@@ -459,37 +464,48 @@ async function loadAll() {
   }
 }
 
-// ── Lazy load detail data ──────────────────────────────────────────────────
+// ── CT entity helper ──────────────────────────────────────────────────────
+function isCTEntity(sf) {
+  if (!sf) return true; // no state on file = assume CT domestic
+  const s = sf.trim().toUpperCase();
+  return s === 'CT' || s === 'CONNECTICUT' || s === 'CONN';
+}
+
+// ── Lazy load detail data (parallel batch loader) ─────────────────────────
 function loadDetailData() {
   if (detailLoadPromise) return detailLoadPromise;
   detailLoadPromise = (async () => {
     const prinTotal = MANIFEST.prin_chunks || 22;
     const agtTotal  = MANIFEST.agt_chunks  || 26;
     const lienTotal = MANIFEST.lien_chunks || 42;
+    const BATCH = 8; // load 8 scripts simultaneously
+
+    async function loadChunks(total, prefix, varPrefix, onChunk) {
+      for (let i = 0; i < total; i += BATCH) {
+        const promises = [];
+        for (let j = i; j < Math.min(i + BATCH, total); j++) {
+          const pad = String(j).padStart(3, '0');
+          promises.push(
+            loadScript(`data/${prefix}_${pad}.js`).then(() => {
+              const key = `${varPrefix}_${pad}`;
+              onChunk(window[key] || (varPrefix.includes('LIEN') ? [] : {}));
+              delete window[key];
+            })
+          );
+        }
+        await Promise.all(promises);
+      }
+    }
 
     PRINCIPALS = {};
-    for (let i = 0; i < prinTotal; i++) {
-      await loadScript(`data/prin_${String(i).padStart(3,'0')}.js`);
-      const key = `__PRIN_CHUNK_${String(i).padStart(3,'0')}`;
-      Object.assign(PRINCIPALS, window[key] || {});
-      delete window[key];
-    }
-
     AGENTS = {};
-    for (let i = 0; i < agtTotal; i++) {
-      await loadScript(`data/agt_${String(i).padStart(3,'0')}.js`);
-      const key = `__AGT_CHUNK_${String(i).padStart(3,'0')}`;
-      Object.assign(AGENTS, window[key] || {});
-      delete window[key];
-    }
-
     LIENS = [];
-    for (let i = 0; i < lienTotal; i++) {
-      await loadScript(`data/lien_${String(i).padStart(3,'0')}.js`);
-      const key = `__LIEN_CHUNK_${String(i).padStart(3,'0')}`;
-      LIENS = LIENS.concat(window[key] || []);
-      delete window[key];
-    }
+
+    await Promise.all([
+      loadChunks(prinTotal, 'prin', '__PRIN_CHUNK', chunk => Object.assign(PRINCIPALS, chunk)),
+      loadChunks(agtTotal,  'agt',  '__AGT_CHUNK',  chunk => Object.assign(AGENTS, chunk)),
+      loadChunks(lienTotal, 'lien', '__LIEN_CHUNK', chunk => { LIENS = LIENS.concat(chunk); }),
+    ]);
 
     // Build owner network index
     buildOwnerIndex();
@@ -638,11 +654,11 @@ function applyFilters() {
     }
     if (type  && b.bt !== type) return false;
     if (city  && !(b.ci||'').toLowerCase().includes(city)) return false;
-    if (state && b.sf !== state) return false;
+    if (state && (b.sf||'').toUpperCase() !== state.toUpperCase()) return false;
     if (from  && (b.dr||'') < from) return false;
     if (to    && (b.dr||'') > to)   return false;
     if (hasLiens  && !LIEN_BIZ_SET[b.id]) return false;
-    if (isForeign && (b.sf||'').toUpperCase() === 'CT') return false;
+    if (isForeign && isCTEntity(b.sf)) return false;
     if (isNetwork && !isNetworkOwner(b.id)) return false;
     if (hasEmail  && !b.em) return false;
     if (isRecent  && (b.dr||'') < twoYrsStr) return false;
@@ -707,7 +723,7 @@ function rowFlags(b) {
   const flags = [];
   if (LIEN_BIZ_SET[b.id]) flags.push(`<span class="badge badge-red" title="Has active UCC liens">⚠ Liens</span>`);
   if (isNetworkOwner(b.id)) flags.push(`<span class="badge badge-purple" title="Owner controls 3+ businesses">🔗 Network</span>`);
-  if ((b.sf||'').toUpperCase() !== 'CT' && b.sf) flags.push(`<span class="badge badge-orange" title="Foreign entity">Foreign</span>`);
+  if (b.sf && !isCTEntity(b.sf)) flags.push(`<span class="badge badge-orange" title="Foreign entity">Foreign</span>`);
   return flags.join(' ');
 }
 
@@ -815,7 +831,7 @@ async function openDetail(id) {
   if (biz.bt) badges.push(`<span class="badge badge-blue">${esc(biz.bt)}</span>`);
   if (biz.st) badges.push(statusBadge(biz.st));
   if (LIEN_BIZ_SET[biz.id]) badges.push(`<span class="badge badge-red">⚠ Active Liens</span>`);
-  if ((biz.sf||'').toUpperCase() !== 'CT' && biz.sf) badges.push(`<span class="badge badge-orange">Foreign Entity</span>`);
+  if (biz.sf && !isCTEntity(biz.sf)) badges.push(`<span class="badge badge-orange" title="Foreign entity — formed outside CT">Foreign Entity</span>`);
   $('d-meta').innerHTML = badges.join('');
 
   // Build address string
