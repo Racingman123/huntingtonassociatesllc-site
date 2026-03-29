@@ -419,6 +419,12 @@ function mapsLink(addr) {
   return 'https://maps.google.com/?q=' + encodeURIComponent(addr);
 }
 
+// ── Async helpers ─────────────────────────────────────────────────────────
+// Yield to the browser event loop so the UI stays responsive during heavy loops
+function yieldToMain() {
+  return new Promise(r => setTimeout(r, 0));
+}
+
 // ── Script-tag loader ──────────────────────────────────────────────────────
 function loadScript(src) {
   return new Promise((resolve, reject) => {
@@ -507,42 +513,51 @@ function loadDetailData() {
       loadChunks(lienTotal, 'lien', '__LIEN_CHUNK', chunk => { LIENS = LIENS.concat(chunk); }),
     ]);
 
-    // Build owner network index
-    buildOwnerIndex();
-    // Build lien biz set
-    buildLienBizSet();
+    // Build owner network index and lien set asynchronously so they don't freeze the UI
+    await buildOwnerIndex();
+    await buildLienBizSet();
   })();
   return detailLoadPromise;
 }
 
-function buildOwnerIndex() {
+async function buildOwnerIndex() {
   OWNER_INDEX = {};
-  Object.entries(PRINCIPALS).forEach(([bizId, prins]) => {
-    prins.forEach(p => {
-      if (!p.n) return;
-      const key = p.n.trim().toLowerCase();
-      if (!OWNER_INDEX[key]) OWNER_INDEX[key] = new Set();
-      OWNER_INDEX[key].add(bizId);
-    });
-  });
+  const entries = Object.entries(PRINCIPALS);
+  const CHUNK = 5000;
+  for (let i = 0; i < entries.length; i += CHUNK) {
+    const end = Math.min(i + CHUNK, entries.length);
+    for (let j = i; j < end; j++) {
+      const [bizId, prins] = entries[j];
+      prins.forEach(p => {
+        if (!p.n) return;
+        const key = p.n.trim().toLowerCase();
+        if (!OWNER_INDEX[key]) OWNER_INDEX[key] = new Set();
+        OWNER_INDEX[key].add(bizId);
+      });
+    }
+    await yieldToMain();
+  }
 }
 
-function buildLienBizSet() {
+async function buildLienBizSet() {
   LIEN_BIZ_SET = {};
-  // Index liens by debtor name for fast lookup
-  // Also build a set of bizIds that have liens by matching business names
+  // Build name→id index for O(1) exact-match lookups
   const nameToId = {};
   ALL.forEach(b => { if (b.n) nameToId[b.n.toUpperCase().trim()] = b.id; });
-  LIENS.forEach(l => {
-    const dn = (l.dn||'').toUpperCase().trim();
-    if (nameToId[dn]) LIEN_BIZ_SET[nameToId[dn]] = true;
-    // partial match for common cases
-    Object.keys(nameToId).forEach(name => {
-      if (dn.includes(name) || name.includes(dn)) {
-        LIEN_BIZ_SET[nameToId[name]] = true;
-      }
-    });
-  });
+  const CHUNK = 50000;
+  for (let i = 0; i < LIENS.length; i += CHUNK) {
+    const end = Math.min(i + CHUNK, LIENS.length);
+    for (let j = i; j < end; j++) {
+      const l = LIENS[j];
+      // Exact match on debtor name
+      const dn = (l.dn||'').toUpperCase().trim();
+      if (nameToId[dn]) LIEN_BIZ_SET[nameToId[dn]] = true;
+      // Exact match on secured-party name (catches reverse lookups)
+      const sn = (l.sn||'').toUpperCase().trim();
+      if (nameToId[sn]) LIEN_BIZ_SET[nameToId[sn]] = true;
+    }
+    await yieldToMain();
+  }
 }
 
 // ── Init ───────────────────────────────────────────────────────────────────
@@ -624,12 +639,17 @@ function buildDashboard() {
 }
 
 // ── Filters & Search ───────────────────────────────────────────────────────
+// Token to cancel in-flight filter runs when a newer one starts
+let filterToken = 0;
+
 function onSearch() {
   clearTimeout(searchTimer);
-  searchTimer = setTimeout(() => { curPage = 1; applyFilters(); }, 200);
+  searchTimer = setTimeout(() => { curPage = 1; applyFilters(); }, 400);
 }
 
-function applyFilters() {
+async function applyFilters() {
+  const myToken = ++filterToken;
+
   const q       = ($('search-input').value || '').toLowerCase().trim();
   const type    = $('f-type').value;
   const city    = ($('f-city').value || '').toLowerCase().trim();
@@ -644,27 +664,47 @@ function applyFilters() {
   const twoYrsAgo  = new Date(); twoYrsAgo.setFullYear(twoYrsAgo.getFullYear() - 2);
   const twoYrsStr  = twoYrsAgo.toISOString().slice(0,10);
 
-  filtered = ALL.filter(b => {
-    if (q) {
-      const name = (b.n||'').toLowerCase();
-      const acct = (b.an||'').toLowerCase();
-      const ci   = (b.ci||'').toLowerCase();
-      const nc   = (b.nc||'').toLowerCase();
-      if (!name.includes(q) && !acct.includes(q) && !ci.includes(q) && !nc.includes(q)) return false;
-    }
-    if (type  && b.bt !== type) return false;
-    if (city  && !(b.ci||'').toLowerCase().includes(city)) return false;
-    if (state && (b.sf||'').toUpperCase() !== state.toUpperCase()) return false;
-    if (from  && (b.dr||'') < from) return false;
-    if (to    && (b.dr||'') > to)   return false;
-    if (hasLiens  && !LIEN_BIZ_SET[b.id]) return false;
-    if (isForeign && isCTEntity(b.sf)) return false;
-    if (isNetwork && !isNetworkOwner(b.id)) return false;
-    if (hasEmail  && !b.em) return false;
-    if (isRecent  && (b.dr||'') < twoYrsStr) return false;
-    return true;
-  });
+  // Show a "searching" indicator immediately
+  $('result-count').textContent = 'Searching…';
 
+  // Process in chunks of 50,000 records, yielding between each chunk
+  const CHUNK = 50000;
+  const result = [];
+  for (let i = 0; i < ALL.length; i += CHUNK) {
+    // If a newer filter was triggered, abort this run
+    if (filterToken !== myToken) return;
+
+    const end = Math.min(i + CHUNK, ALL.length);
+    for (let j = i; j < end; j++) {
+      const b = ALL[j];
+      if (q) {
+        const name = (b.n||'').toLowerCase();
+        const acct = (b.an||'').toLowerCase();
+        const ci   = (b.ci||'').toLowerCase();
+        const nc   = (b.nc||'').toLowerCase();
+        if (!name.includes(q) && !acct.includes(q) && !ci.includes(q) && !nc.includes(q)) continue;
+      }
+      if (type  && b.bt !== type) continue;
+      if (city  && !(b.ci||'').toLowerCase().includes(city)) continue;
+      if (state && (b.sf||'').toUpperCase() !== state.toUpperCase()) continue;
+      if (from  && (b.dr||'') < from) continue;
+      if (to    && (b.dr||'') > to)   continue;
+      if (hasLiens  && !LIEN_BIZ_SET[b.id]) continue;
+      if (isForeign && isCTEntity(b.sf)) continue;
+      if (isNetwork && !isNetworkOwner(b.id)) continue;
+      if (hasEmail  && !b.em) continue;
+      if (isRecent  && (b.dr||'') < twoYrsStr) continue;
+      result.push(b);
+    }
+
+    // Yield to browser after each chunk so UI stays responsive
+    await yieldToMain();
+  }
+
+  // Check again after async gap
+  if (filterToken !== myToken) return;
+
+  filtered = result;
   curPage = 1;
   sortResults();
 }
@@ -698,6 +738,8 @@ function setSort(col) {
 }
 
 function sortResults() {
+  // Sort synchronously (only PAGE_SIZE rows will be rendered, so this is fast)
+  // For large filtered sets the sort itself can take ~100ms — acceptable
   filtered.sort((a, b) => {
     const av = (a[sortCol]||'').toString().toLowerCase();
     const bv = (b[sortCol]||'').toString().toLowerCase();
@@ -707,7 +749,8 @@ function sortResults() {
     const el = $('sort-' + c);
     if (el) el.textContent = sortCol === c ? (sortDir === 1 ? ' ↑' : ' ↓') : ' ↕';
   });
-  renderResults();
+  // Schedule render in next animation frame so browser can breathe
+  requestAnimationFrame(renderResults);
 }
 
 function statusBadge(st) {
