@@ -390,6 +390,8 @@ let OWNER_INDEX = {};
 let AGENT_INDEX = {};
 // Lien set: bizId -> true (for fast filter)
 let LIEN_BIZ_SET = {};
+// Fast O(1) lookup map: bizId -> business object (built at init)
+let ALL_MAP = {};
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
@@ -463,6 +465,8 @@ async function loadAll() {
     }
 
     setLoadBar(100, `Loaded ${fmt(ALL.length)} businesses`, 'Ready!');
+    // Build O(1) lookup map so network panels don't do O(n) ALL.find() per item
+    ALL.forEach(b => { ALL_MAP[b.id] = b; });
     await new Promise(r => setTimeout(r, 400));
     init();
   } catch(e) {
@@ -1000,7 +1004,7 @@ function renderPrincipals(biz, bizId) {
     if (networkCount > 0) {
       const panelId = 'np-' + Math.random().toString(36).slice(2);
       const otherBizList = otherBizIds.map(oid => {
-        const ob = ALL.find(x => x.id === oid);
+        const ob = ALL_MAP[oid];
         if (!ob) return '';
         return `<div class="owner-biz-link" onclick="openDetail('${esc(oid)}')">${esc(ob.n||oid)}<span class="owner-biz-meta"> — ${esc(ob.bt||'')} · ${esc(toTitleCase(ob.ci||''))}</span></div>`;
       }).join('');
@@ -1055,7 +1059,7 @@ function renderAgents(bizId) {
     if (networkCount > 0) {
       const panelId = 'ap-' + Math.random().toString(36).slice(2);
       const list = otherBizIds.map(oid => {
-        const ob = ALL.find(x => x.id === oid);
+        const ob = ALL_MAP[oid];
         if (!ob) return '';
         return `<div class="owner-biz-link" onclick="openDetail('${esc(oid)}')">${esc(ob.n||oid)}<span class="owner-biz-meta"> — ${esc(ob.bt||'')} · ${esc(toTitleCase(ob.ci||''))}</span></div>`;
       }).join('');
@@ -1093,20 +1097,14 @@ function renderLiens(biz) {
     return;
   }
 
-  // Build links to the CT SOS UCC search and a Google fallback for each file number.
-  // The CT SOS portal (Salesforce) does not support deep-linking by file number, so we
-  // link to the search page and show the file number as a copy-able hint.
+  // Build a direct deep-link to the CT SOS UCC lien search result for this file number.
+  // URL format confirmed from live search: ?searchBy=LienSearch&lien=XXXXXXXXXX
   function lienLink(fn) {
     if (!fn || fn === '\u2014') return esc(fn||'\u2014');
-    // CT SOS: link to the lien search page; user selects "Lien number" and pastes the number
-    var ctUrl = 'https://service.ct.gov/business/s/onlineenquiry?language=en_US';
-    // Google: search for the exact file number with Connecticut context
-    var gUrl  = 'https://www.google.com/search?q=' + encodeURIComponent('"' + fn + '" Connecticut UCC lien');
-    return '<span style="font-weight:500;font-family:monospace">' + esc(fn) + '</span>'
-         + '<div style="margin-top:3px;display:flex;gap:6px;flex-wrap:wrap">'
-         + '<a class="research-link" href="' + ctUrl + '" target="_blank" rel="noopener" title="Search by &quot;Lien number&quot; and enter: ' + esc(fn) + '">🏛 CT SOS Search</a>'
-         + '<a class="research-link" href="' + gUrl  + '" target="_blank" rel="noopener">🔍 Google</a>'
-         + '</div>';
+    var ctUrl = 'https://service.ct.gov/business/s/onlineenquiry?searchBy=LienSearch&lien=' + encodeURIComponent(fn);
+    return '<a class="research-link" href="' + ctUrl + '" target="_blank" rel="noopener" style="font-family:monospace;font-weight:600">'
+         + esc(fn)
+         + ' 🏛</a>';
   }
 
   var rows = bizLiens.map(function(l) {
