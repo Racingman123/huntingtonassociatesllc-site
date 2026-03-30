@@ -1179,7 +1179,8 @@ function goPage(p) {
 
 // ── Detail View ────────────────────────────────────────────────────────────
 async function openDetail(id) {
-  const biz = ALL.find(b => b.id === id);
+  // Use ALL_MAP for O(1) lookup — works on both desktop (fully loaded) and mobile (chunk-loaded)
+  const biz = ALL_MAP[id] || ALL.find(b => b.id === id);
   if (!biz) return;
 
   showPage('search');
@@ -1244,7 +1245,13 @@ async function openDetail(id) {
       </div>
       <div style="font-size:11px;color:var(--text3);margin-top:6px">Paste the copied name into the search box on the CT SOS page to find this business.</div>
     </div>`;
-  $('d-grid').insertAdjacentHTML('afterend', ctSosHtml);
+  // Remove any existing CT SOS block from a previous detail view before inserting new one
+  const existingCtSos = document.getElementById('ct-sos-block');
+  if (existingCtSos) existingCtSos.remove();
+  const ctSosDiv = document.createElement('div');
+  ctSosDiv.id = 'ct-sos-block';
+  ctSosDiv.innerHTML = ctSosHtml;
+  $('d-grid').insertAdjacentElement('afterend', ctSosDiv);
 
   // Spinners
   const spinner = `<div class="loading-detail"><span class="spinner"></span>Loading detail data…</div>`;
@@ -1647,9 +1654,10 @@ async function _mobileLoadAndOpen(bizId, chunkIdx) {
     const chunk = window[key] || [];
     delete window[key];
     const map = {};
-    chunk.forEach(b => { map[b.id] = b; ALL_MAP[b.id] = b; });
+    // Add to ALL_MAP first, then push to ALL for renderPrincipals/renderAgents compatibility
+    chunk.forEach(b => { map[b.id] = b; });
     MOBILE_BIZ_CACHE[chunkIdx] = map;
-    chunk.forEach(b => { if (!ALL_MAP[b.id]) ALL.push(b); });
+    chunk.forEach(b => { ALL_MAP[b.id] = b; ALL.push(b); });
   }
   openDetail(bizId);
 }
