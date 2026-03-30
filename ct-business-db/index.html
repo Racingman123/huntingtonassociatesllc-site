@@ -1372,7 +1372,7 @@ async function openDetail(id) {
   }
 
   renderPrincipals(biz, id);
-  renderAgents(id);
+  renderAgents(id, biz);
   renderLiens(biz);
 }
 
@@ -1420,7 +1420,8 @@ function renderPrincipals(biz, bizId) {
 
     const normName = (p.n||'').trim().toLowerCase();
     const otherBizIds = OWNER_INDEX[normName] ? [...OWNER_INDEX[normName]].filter(id => id !== bizId) : [];
-    const networkCount = otherBizIds.length;
+    // On mobile, OWNER_INDEX only has 1-2 chunks loaded — use the pre-computed onc field instead
+    const networkCount = IS_MOBILE ? (biz.onc || 0) : otherBizIds.length;
 
     // Research links
     const q = encodeURIComponent(`"${name}" Connecticut`);
@@ -1437,18 +1438,23 @@ function renderPrincipals(biz, bizId) {
     // Network panel
     let networkHtml = '';
     if (networkCount > 0) {
-      const panelId = 'np-' + Math.random().toString(36).slice(2);
-      const otherBizList = otherBizIds.map(oid => {
-        const ob = ALL_MAP[oid];
-        if (!ob) return '';
-        return `<div class="owner-biz-link" onclick="openDetail('${esc(oid)}')">${esc(ob.n||oid)}<span class="owner-biz-meta"> — ${esc(ob.bt||'')} · ${esc(toTitleCase(ob.ci||''))}</span></div>`;
-      }).join('');
-      networkHtml = `
-        <div class="network-badge-label">🔗 Also on file for ${networkCount} other business${networkCount>1?'es':''}:</div>
-        <div class="owner-panel">
-          <div class="owner-panel-title">${esc(name)} is also on file for (${networkCount} total):</div>
-          ${otherBizList}
-        </div>`;
+      if (IS_MOBILE) {
+        // On mobile we have the accurate count but not the full list of businesses
+        networkHtml = `<div class="network-badge-label">🔗 Also on file for ${networkCount} other business${networkCount>1?'es':''}</div>`;
+      } else {
+        const panelId = 'np-' + Math.random().toString(36).slice(2);
+        const otherBizList = otherBizIds.map(oid => {
+          const ob = ALL_MAP[oid];
+          if (!ob) return '';
+          return `<div class="owner-biz-link" onclick="openDetail('${esc(oid)}')">${esc(ob.n||oid)}<span class="owner-biz-meta"> — ${esc(ob.bt||'')} · ${esc(toTitleCase(ob.ci||''))}</span></div>`;
+        }).join('');
+        networkHtml = `
+          <div class="network-badge-label">🔗 Also on file for ${networkCount} other business${networkCount>1?'es':''}:</div>
+          <div class="owner-panel">
+            <div class="owner-panel-title">${esc(name)} is also on file for (${networkCount} total):</div>
+            ${otherBizList}
+          </div>`;
+      }
     }
 
     return `<tr>
@@ -1468,7 +1474,7 @@ function renderPrincipals(biz, bizId) {
   </table></div>`;
 }
 
-function renderAgents(bizId) {
+function renderAgents(bizId, biz) {
   const agents = (AGENTS || {})[bizId] || [];
   if (!agents.length) {
     $('tab-agents').innerHTML = '<div class="empty-state">No registered agents on file</div>';
@@ -1483,21 +1489,26 @@ function renderAgents(bizId) {
     const normName = (a.n||'').trim().toLowerCase();
     // Use AGENT_INDEX (built from agents data) for accurate cross-business lookup
     const otherBizIds = AGENT_INDEX[normName] ? [...AGENT_INDEX[normName]].filter(id => id !== bizId) : [];
-    const networkCount = otherBizIds.length;
+    // On mobile, AGENT_INDEX only has 1-2 chunks loaded — use the pre-computed anc field instead
+    const networkCount = IS_MOBILE ? ((biz && biz.anc) || 0) : otherBizIds.length;
     let networkHtml = '';
     if (networkCount > 0) {
-      const panelId = 'ap-' + Math.random().toString(36).slice(2);
-      const list = otherBizIds.map(oid => {
-        const ob = ALL_MAP[oid];
-        if (!ob) return '';
-        return `<div class="owner-biz-link" onclick="openDetail('${esc(oid)}')">${esc(ob.n||oid)}<span class="owner-biz-meta"> — ${esc(ob.bt||'')} · ${esc(toTitleCase(ob.ci||''))}</span></div>`;
-      }).join('');
-      networkHtml = `
-        <div class="network-badge-label">🔗 Registered agent for ${networkCount} other business${networkCount>1?'es':''}:</div>
-        <div class="owner-panel">
-          <div class="owner-panel-title">${esc(a.n||'')} is also registered agent for (${networkCount} total):</div>
-          ${list}
-        </div>`;
+      if (IS_MOBILE) {
+        networkHtml = `<div class="network-badge-label">🔗 Registered agent for ${networkCount} other business${networkCount>1?'es':''}</div>`;
+      } else {
+        const panelId = 'ap-' + Math.random().toString(36).slice(2);
+        const list = otherBizIds.map(oid => {
+          const ob = ALL_MAP[oid];
+          if (!ob) return '';
+          return `<div class="owner-biz-link" onclick="openDetail('${esc(oid)}')">${esc(ob.n||oid)}<span class="owner-biz-meta"> — ${esc(ob.bt||'')} · ${esc(toTitleCase(ob.ci||''))}</span></div>`;
+        }).join('');
+        networkHtml = `
+          <div class="network-badge-label">🔗 Registered agent for ${networkCount} other business${networkCount>1?'es':''}:</div>
+          <div class="owner-panel">
+            <div class="owner-panel-title">${esc(a.n||'')} is also registered agent for (${networkCount} total):</div>
+            ${list}
+          </div>`;
+      }
     }
     return `<tr>
       <td style="max-width:none;white-space:normal">
@@ -1875,7 +1886,7 @@ async function _mobileLoadAndOpen(bizId, pc, ac) {
   } else {
     AGENTS = AGENTS || {};
   }
-  renderAgents(bizId);
+  renderAgents(bizId, biz);
 }
 
 // ── Boot ───────────────────────────────────────────────────────────────────
