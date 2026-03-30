@@ -779,9 +779,11 @@ function showPage(name) {
   if (name === 'dashboard') tabs[0].classList.add('active');
   if (name === 'search')    tabs[1].classList.add('active');
   if (name === 'people')    tabs[2].classList.add('active');
-  $('sidebar').style.display = name === 'search' ? 'block' : 'none';
+  // Only show sidebar on search page, and only on desktop (mobile manages sidebar separately)
+  if (!IS_MOBILE) $('sidebar').style.display = name === 'search' ? 'block' : 'none';
   if (name === 'people') onPeoplePageOpen();
 }
+
 
 // ── People Search ──────────────────────────────────────────────────────────
 let peopleTimer = null;
@@ -1224,7 +1226,7 @@ async function openDetail(id) {
 
   // CT SOS filing link
   const ctSosName = encodeURIComponent(biz.n || '');
-  const ctSosUrl = `https://service.ct.gov/business/s/onlinebusinesssearch?language=en_US&searchTerm=${ctSosName}`;
+  const ctSosUrl = `https://service.ct.gov/business/s/onlinebusinesssearch?language=en_US&businessName=${ctSosName}`;
   const ctSosHtml = `
     <div style="margin-top:16px;padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
       <span style="font-size:13px;color:var(--text2);flex:1">View official filings, articles of incorporation &amp; annual reports:</span>
@@ -1322,11 +1324,11 @@ function renderPrincipals(biz, bizId) {
       const otherBizList = otherBizIds.map(oid => {
         const ob = ALL_MAP[oid];
         if (!ob) return '';
-        return `<div class="owner-biz-link" onclick="openDetail('${esc(oid)}')}">${esc(ob.n||oid)}<span class="owner-biz-meta"> — ${esc(ob.bt||'')} · ${esc(toTitleCase(ob.ci||''))}</span></div>`;
+        return `<div class="owner-biz-link" onclick="openDetail('${esc(oid)}')">${esc(ob.n||oid)}<span class="owner-biz-meta"> — ${esc(ob.bt||'')} · ${esc(toTitleCase(ob.ci||''))}</span></div>`;
       }).join('');
       networkHtml = `
-        <button class="network-badge" onclick="togglePanel('${panelId}')}">🔗 ${networkCount} other business${networkCount>1?'es':''}</button>
-        <div class="owner-panel" id="${panelId}" style="display:none">
+        <div class="network-badge-label">🔗 Also on file for ${networkCount} other business${networkCount>1?'es':''}:</div>
+        <div class="owner-panel">
           <div class="owner-panel-title">${esc(name)} is also on file for (${networkCount} total):</div>
           ${otherBizList}
         </div>`;
@@ -1374,8 +1376,8 @@ function renderAgents(bizId) {
         return `<div class="owner-biz-link" onclick="openDetail('${esc(oid)}')">${esc(ob.n||oid)}<span class="owner-biz-meta"> — ${esc(ob.bt||'')} · ${esc(toTitleCase(ob.ci||''))}</span></div>`;
       }).join('');
       networkHtml = `
-        <button class="network-badge" onclick="togglePanel('${panelId}')">🔗 Registered agent for ${networkCount} other business${networkCount>1?'es':''}</button>
-        <div class="owner-panel" id="${panelId}" style="display:none">
+        <div class="network-badge-label">🔗 Registered agent for ${networkCount} other business${networkCount>1?'es':''}:</div>
+        <div class="owner-panel">
           <div class="owner-panel-title">${esc(a.n||'')} is also registered agent for (${networkCount} total):</div>
           ${list}
         </div>`;
@@ -1470,8 +1472,8 @@ function exportSelectedCSV() {
 }
 
 // ── Mobile detection ─────────────────────────────────────────────────────
-const IS_MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent)
-  || (window.innerWidth <= 768 && 'ontouchstart' in window);
+// Use only user-agent for mobile detection — viewport width is unreliable at boot time
+const IS_MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 
 // ── Mobile state ──────────────────────────────────────────────────────────
 let MOBILE_SHARD_CACHE = {};  // letter -> array of records
