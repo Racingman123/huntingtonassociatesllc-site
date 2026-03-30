@@ -325,6 +325,7 @@
       <button class="nav-tab active" onclick="showPage('dashboard')">Dashboard</button>
       <button class="nav-tab" onclick="showPage('search')">Search</button>
       <button class="nav-tab" onclick="showPage('people')">People Search</button>
+      <button class="nav-tab" onclick="showPage('serial')">Serial Entrepreneurs</button>
     </div>
     <button id="sidebar-toggle" onclick="toggleSidebar()">
       <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
@@ -436,6 +437,33 @@
           </div>
           <div id="people-results-count"></div>
           <div id="people-results-list"></div>
+        </div>
+      </div>
+
+      <!-- Serial Entrepreneurs -->
+      <div class="page" id="page-serial">
+        <div class="people-search-wrap">
+          <div class="people-search-title">Serial Entrepreneurs</div>
+          <div class="people-search-sub">Owners and principals who appear on 3 or more CT businesses, sorted by most companies first. Requires detail data to be loaded.</div>
+          <div class="people-notice" id="serial-notice" style="display:none">⏳ Detail data is still loading. <a href="#" onclick="loadDetailData();return false" style="color:var(--accent)">Click to load now</a> or wait a moment and try again.</div>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap">
+            <div class="filter-group" style="flex:1;min-width:200px">
+              <label class="filter-label">Filter by name</label>
+              <input id="serial-filter" placeholder="e.g. Smith, John, LLC…" oninput="renderSerialList()" />
+            </div>
+            <div class="filter-group" style="min-width:140px">
+              <label class="filter-label">Min businesses</label>
+              <select class="filter-select" id="serial-min" onchange="renderSerialList()">
+                <option value="3">3+</option>
+                <option value="5">5+</option>
+                <option value="10">10+</option>
+                <option value="20">20+</option>
+                <option value="50">50+</option>
+              </select>
+            </div>
+            <div id="serial-count" style="font-size:13px;color:var(--text2)"></div>
+          </div>
+          <div id="serial-list"></div>
         </div>
       </div>
 
@@ -779,9 +807,11 @@ function showPage(name) {
   if (name === 'dashboard') tabs[0].classList.add('active');
   if (name === 'search')    tabs[1].classList.add('active');
   if (name === 'people')    tabs[2].classList.add('active');
+  if (name === 'serial')    tabs[3].classList.add('active');
   // Only show sidebar on search page, and only on desktop (mobile manages sidebar separately)
   if (!IS_MOBILE) $('sidebar').style.display = name === 'search' ? 'block' : 'none';
   if (name === 'people') onPeoplePageOpen();
+  if (name === 'serial')  onSerialPageOpen();
 }
 
 
@@ -924,7 +954,78 @@ function openDetailFromPeople(bizId) {
   openDetail(bizId);
 }
 
-// ── Dashboard ──────────────────────────────────────────────────────────────
+//// ── Serial Entrepreneurs ───────────────────────────────────────────────
+let SERIAL_LIST = null; // sorted array of {name, count, ids} built once from OWNER_INDEX
+
+function onSerialPageOpen() {
+  const loaded = OWNER_INDEX && Object.keys(OWNER_INDEX).length > 0;
+  $('serial-notice').style.display = loaded ? 'none' : 'block';
+  if (!loaded) {
+    $('serial-list').innerHTML = '<div class="people-empty">Detail data not yet loaded. Click "Click to load now" above or visit the People Search tab first to trigger loading.</div>';
+    loadDetailData(); // kick off background load
+    return;
+  }
+  if (!SERIAL_LIST) buildSerialList();
+  renderSerialList();
+}
+
+function buildSerialList() {
+  // Build sorted array from OWNER_INDEX: {name, count, ids[]}
+  const entries = [];
+  for (const name in OWNER_INDEX) {
+    const ids = Array.from(OWNER_INDEX[name]);
+    if (ids.length >= 3) entries.push({ name, count: ids.length, ids });
+  }
+  // Sort by count descending, then name ascending
+  entries.sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+  SERIAL_LIST = entries;
+}
+
+function renderSerialList() {
+  if (!SERIAL_LIST) { onSerialPageOpen(); return; }
+  const filterQ = ($('serial-filter').value || '').trim().toLowerCase();
+  const minCount = parseInt($('serial-min').value || '3', 10);
+
+  const filtered = SERIAL_LIST.filter(e =>
+    e.count >= minCount &&
+    (!filterQ || e.name.toLowerCase().includes(filterQ))
+  );
+
+  $('serial-count').textContent = `${fmt(filtered.length)} owner${filtered.length !== 1 ? 's' : ''} found`;
+
+  if (filtered.length === 0) {
+    $('serial-list').innerHTML = '<div class="people-empty">No results match the current filters.</div>';
+    return;
+  }
+
+  // Render top 200 for performance (list can be 50K+ entries)
+  const PAGE = 200;
+  const shown = filtered.slice(0, PAGE);
+  const cards = shown.map((e, i) => {
+    const rank = i + 1;
+    const bizLinks = e.ids.map(id => {
+      const b = ALL_MAP[id];
+      if (!b) return '';
+      return `<div class="owner-biz-link" onclick="openDetailFromPeople('${esc(id)}')">${esc(b.n || id)}<span class="owner-biz-meta"> — ${esc(b.bt || '')} · ${esc(toTitleCase(b.ci || ''))}</span></div>`;
+    }).filter(Boolean).join('');
+    return `<div class="people-card" style="margin-bottom:12px">
+      <div style="display:flex;align-items:baseline;gap:10px">
+        <span style="font-size:11px;color:var(--text3);min-width:28px">#${rank}</span>
+        <div class="people-card-name">${esc(toTitleCase(e.name))}</div>
+        <span class="badge badge-blue" style="margin-left:auto;white-space:nowrap">${e.count} businesses</span>
+      </div>
+      <div class="owner-panel" style="margin-top:8px">${bizLinks || '<span style="color:var(--text3);font-size:12px">Business details not loaded yet</span>'}</div>
+    </div>`;
+  }).join('');
+
+  const moreNote = filtered.length > PAGE
+    ? `<div style="text-align:center;padding:16px;color:var(--text2);font-size:13px">Showing top ${PAGE} of ${fmt(filtered.length)}. Use the name filter to narrow results.</div>`
+    : '';
+
+  $('serial-list').innerHTML = cards + moreNote;
+}
+
+// ── Dashboard ──────────────────────────────────────────────────────
 function buildDashboard() {
   $('stats-grid').innerHTML = [
     { label: 'Active Businesses',  value: fmt(ALL.length),            sub: 'CT Secretary of State' },
