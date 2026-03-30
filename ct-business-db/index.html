@@ -1671,7 +1671,7 @@ async function mobileSearch(q) {
   // Load shard if not cached
   if (!MOBILE_SHARD_CACHE[shardKey]) {
     try {
-      await loadScript(`data/mshard_${shardKey}.js`);
+      await loadScript(`data/mshard_${shardKey}_v2.js`);
       const varName = `__MSHARD_${shardKey.toUpperCase()}`;
       MOBILE_SHARD_CACHE[shardKey] = window[varName] || [];
       delete window[varName];
