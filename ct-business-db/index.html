@@ -1682,8 +1682,8 @@ async function mobileSearch(q) {
   }
 
   const shard = MOBILE_SHARD_CACHE[shardKey];
-  // Filter: [id, name, city, type, status, dateReg, accountNum, sf, email, chunkIdx]
-  const matches = shard.filter(r => (r[1]||'').toLowerCase().includes(ql));
+  // New v2 shard format: objects with {id, n, bt, st, ci, sa, zp, an, dr, sr, em, sf, nc, pc, ac}
+  const matches = shard.filter(r => (r.n||'').toLowerCase().includes(ql));
 
   mobileSearchResults = matches;
   mobileResultsPage = 0;
@@ -1705,21 +1705,24 @@ function renderMobileResults(q) {
   const countHtml = `<div class="result-count" style="margin-bottom:12px">${fmt(total)} result${total!==1?'s':''} for "${esc(q)}"</div>`;
 
   const cards = page.map(r => {
-    const [id, name, city, type, status, dateReg, acct, sf, email, chunkIdx] = r;
-    const statusCls = (status||'').toLowerCase().includes('active') ? 'badge-green'
-      : (status||'').toLowerCase().includes('inactive') ? 'badge-red' : 'badge-yellow';
-    return `<div class="mobile-biz-card" onclick="mobileOpenDetail('${esc(id)}', ${chunkIdx})">
-      <div class="mobile-card-name">${esc(name||'—')}</div>
+    const statusCls = (r.st||'').toLowerCase().includes('active') ? 'badge-green'
+      : (r.st||'').toLowerCase().includes('inactive') ? 'badge-red' : 'badge-yellow';
+    const pcVal = r.pc != null ? r.pc : -1;
+    const acVal = r.ac != null ? r.ac : -1;
+    // Find biz chunk index from ALL_MAP or derive from shard
+    const bizChunkIdx = Math.floor(Object.keys(ALL_MAP).length / 10000) || 0;
+    return `<div class="mobile-biz-card" onclick="mobileOpenDetail('${esc(r.id)}', ${pcVal}, ${acVal})">
+      <div class="mobile-card-name">${esc(r.n||'—')}</div>
       <div class="mobile-card-meta">
-        ${type ? `<span class="badge badge-blue" style="font-size:10px">${esc(type)}</span>` : ''}
-        ${status ? `<span class="badge ${statusCls}" style="font-size:10px">${esc(status)}</span>` : ''}
+        ${r.bt ? `<span class="badge badge-blue" style="font-size:10px">${esc(r.bt)}</span>` : ''}
+        ${r.st ? `<span class="badge ${statusCls}" style="font-size:10px">${esc(r.st)}</span>` : ''}
       </div>
       <div class="mobile-card-sub">
-        ${city ? `📍 ${esc(toTitleCase(city))}${sf && sf!=='CT' ? ', '+esc(sf) : ''}` : ''}
-        ${dateReg ? ` · Reg. ${fmtDate(dateReg)}` : ''}
-        ${acct ? ` · #${esc(acct)}` : ''}
+        ${r.ci ? `📍 ${esc(toTitleCase(r.ci))}${r.sf && r.sf!=='CT' ? ', '+esc(r.sf) : ''}` : ''}
+        ${r.dr ? ` · Reg. ${fmtDate(r.dr)}` : ''}
+        ${r.an ? ` · #${esc(r.an)}` : ''}
       </div>
-      ${email ? `<div class="mobile-card-sub" style="color:var(--accent);font-size:11px">${esc(email)}</div>` : ''}
+      ${r.em ? `<div class="mobile-card-sub" style="color:var(--accent);font-size:11px">${esc(r.em)}</div>` : ''}
     </div>`;
   }).join('');
 
@@ -1742,7 +1745,8 @@ function mobileChangePage(dir) {
 }
 
 // Synchronous entry point — immediately switches to detail view to avoid iOS gesture loss
-function mobileOpenDetail(bizId, chunkIdx) {
+// pc = principal chunk index, ac = agent chunk index (-1 = no data)
+function mobileOpenDetail(bizId, pc, ac) {
   // Show detail view immediately (synchronous) so iOS doesn't block the navigation
   $('search-list-view').style.display = 'none';
   $('detail-view').style.display = 'block';
@@ -1750,23 +1754,128 @@ function mobileOpenDetail(bizId, chunkIdx) {
   $('d-meta').textContent = '';
   $('d-grid').innerHTML = '<div class="loading-detail"><span class="spinner"></span>Loading business…</div>';
   // Then do the async work
-  _mobileLoadAndOpen(bizId, chunkIdx);
+  _mobileLoadAndOpen(bizId, pc, ac);
 }
 
-async function _mobileLoadAndOpen(bizId, chunkIdx) {
-  if (!MOBILE_BIZ_CACHE[chunkIdx]) {
-    const pad = String(chunkIdx).padStart(3,'0');
-    await loadScript(`data/biz_${pad}.js`);
-    const key = `__BIZ_CHUNK_${pad}`;
-    const chunk = window[key] || [];
-    delete window[key];
-    const map = {};
-    // Add to ALL_MAP first, then push to ALL for renderPrincipals/renderAgents compatibility
-    chunk.forEach(b => { map[b.id] = b; });
-    MOBILE_BIZ_CACHE[chunkIdx] = map;
-    chunk.forEach(b => { ALL_MAP[b.id] = b; ALL.push(b); });
+async function _mobileLoadAndOpen(bizId, pc, ac) {
+  // Step 1: find the biz record — first check ALL_MAP, then scan all loaded shard caches
+  let biz = ALL_MAP[bizId];
+  if (!biz) {
+    // Search through all cached shards for the record
+    for (const shardKey of Object.keys(MOBILE_SHARD_CACHE)) {
+      const found = MOBILE_SHARD_CACHE[shardKey].find(r => r.id === bizId);
+      if (found) { biz = found; ALL_MAP[bizId] = found; break; }
+    }
   }
-  openDetail(bizId);
+  if (!biz) {
+    $('d-grid').innerHTML = '<div class="empty-state">Business not found.</div>';
+    return;
+  }
+
+  // Step 2: Render basic info immediately (no detail data needed)
+  // Reuse openDetail's rendering logic but skip loadDetailData()
+  $('d-name').textContent = biz.n || '—';
+  const badges = [];
+  if (biz.bt) badges.push(`<span class="badge badge-blue">${esc(biz.bt)}</span>`);
+  if (biz.st) badges.push(statusBadge(biz.st));
+  if (biz.sf && !isCTEntity(biz.sf)) badges.push(`<span class="badge badge-orange">Foreign Entity</span>`);
+  $('d-meta').innerHTML = badges.join('');
+
+  const addrParts = [biz.sr, biz.ci ? toTitleCase(biz.ci) : '', biz.sa, biz.zp].filter(Boolean);
+  const addrStr = addrParts.join(', ');
+  const filingVelocity = calcVelocity(biz);
+  const fields = [
+    { label: 'Account Number', val: biz.an, copy: true },
+    { label: 'Business Type',  val: biz.bt },
+    { label: 'Status',         val: biz.st },
+    { label: 'Date Registered', val: fmtDate(biz.dr) },
+    { label: 'Annual Report Due', val: fmtDate(biz.ar) },
+    { label: 'State of Formation', val: biz.sf },
+    { label: 'Address', val: addrStr, map: addrStr, copy: true },
+    { label: 'Email', val: biz.em, copy: true },
+    { label: 'NAICS Code', val: biz.nc, copy: true },
+    { label: 'Filing Activity', val: filingVelocity.label, velocity: filingVelocity },
+  ].filter(f => f.val);
+  $('d-grid').innerHTML = fields.map(f => {
+    let valHtml = `<span>${esc(f.val)}</span>`;
+    if (f.copy) valHtml += `<button class="copy-btn" onclick="copyText('${esc(f.val)}')" title="Copy">⍘</button>`;
+    if (f.map)  valHtml += `<a class="map-link" href="${mapsLink(f.map)}" target="_blank" rel="noopener" title="Open in Google Maps">📍 Map</a>`;
+    let extra = f.velocity ? renderVelocityBar(f.velocity) : '';
+    return `<div><div class="detail-field-label">${esc(f.label)}</div><div class="detail-field-value">${valHtml}</div>${extra}</div>`;
+  }).join('');
+
+  // CT SOS block
+  const existingCtSos = document.getElementById('ct-sos-block');
+  if (existingCtSos) existingCtSos.remove();
+  const bizNameForCopy = (biz.n || '').replace(/'/g, "\\'");
+  const ctSosDiv = document.createElement('div');
+  ctSosDiv.id = 'ct-sos-block';
+  ctSosDiv.innerHTML = `<div style="margin-top:16px;padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:8px">
+    <div style="font-size:12px;color:var(--text2);margin-bottom:8px">View official filings on the CT Secretary of State portal:</div>
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <code style="flex:1;min-width:0;font-size:12px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:5px 8px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(biz.n||'')}</code>
+      <button onclick="navigator.clipboard.writeText('${bizNameForCopy}').then(()=>showToast('Business name copied — paste it in the CT SOS search'))" style="padding:5px 10px;background:var(--bg2);border:1px solid var(--border2);border-radius:4px;font-size:12px;color:var(--text);cursor:pointer;white-space:nowrap">📋 Copy Name</button>
+      <a href="https://service.ct.gov/business/s/onlinebusinesssearch?language=en_US" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;background:var(--accent);color:#fff;border-radius:4px;font-size:12px;font-weight:500;text-decoration:none;white-space:nowrap">🏙️ Open CT SOS Search</a>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-top:6px">Paste the copied name into the search box on the CT SOS page.</div>
+  </div>`;
+  $('d-grid').insertAdjacentElement('afterend', ctSosDiv);
+
+  // Step 3: Load only the specific principal and agent chunks for this business
+  const spinner = `<div class="loading-detail"><span class="spinner"></span>Loading…</div>`;
+  $('tab-principals').innerHTML = spinner;
+  $('tab-agents').innerHTML     = spinner;
+  $('tab-liens').innerHTML      = `<div class="empty-state" style="padding:24px">UCC lien data is available on the desktop version.</div>`;
+  showTab('principals');
+
+  // Load principal chunk
+  if (pc >= 0) {
+    if (!PRINCIPALS) PRINCIPALS = {};
+    if (!PRINCIPALS[bizId]) {
+      const pad = String(pc).padStart(3,'0');
+      await loadScript(`data/prin_${pad}.js`);
+      const key = `__PRIN_CHUNK_${pad}`;
+      const chunk = window[key] || {};
+      delete window[key];
+      // Index this chunk into OWNER_INDEX and PRINCIPALS
+      Object.assign(PRINCIPALS, chunk);
+      Object.entries(chunk).forEach(([bid, prins]) => {
+        prins.forEach(p => {
+          if (!p.n) return;
+          const k = p.n.trim().toLowerCase();
+          if (!OWNER_INDEX[k]) OWNER_INDEX[k] = new Set();
+          OWNER_INDEX[k].add(bid);
+        });
+      });
+    }
+  } else {
+    PRINCIPALS = PRINCIPALS || {};
+  }
+  renderPrincipals(biz, bizId);
+
+  // Load agent chunk
+  if (ac >= 0) {
+    if (!AGENTS) AGENTS = {};
+    if (!AGENTS[bizId]) {
+      const pad = String(ac).padStart(3,'0');
+      await loadScript(`data/agt_${pad}.js`);
+      const key = `__AGT_CHUNK_${pad}`;
+      const chunk = window[key] || {};
+      delete window[key];
+      Object.assign(AGENTS, chunk);
+      Object.entries(chunk).forEach(([bid, agts]) => {
+        agts.forEach(a => {
+          if (!a.n) return;
+          const k = a.n.trim().toLowerCase();
+          if (!AGENT_INDEX[k]) AGENT_INDEX[k] = new Set();
+          AGENT_INDEX[k].add(bid);
+        });
+      });
+    }
+  } else {
+    AGENTS = AGENTS || {};
+  }
+  renderAgents(bizId);
 }
 
 // ── Boot ───────────────────────────────────────────────────────────────────
