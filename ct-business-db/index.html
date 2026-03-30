@@ -441,9 +441,8 @@
 
       <!-- Search -->
       <div class="page" id="page-search">
-        <!-- List view -->
-        <div id="search-list-view">
-          <div class="search-header">
+        <!-- Search header lives OUTSIDE search-list-view so mobile can replace results without destroying the input -->
+        <div class="search-header" id="search-header">
             <div class="search-box-wrap">
               <svg class="search-icon" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
               <input id="search-input" placeholder="Search by name, account #, city, NAICS, owner name…" oninput="IS_MOBILE ? (clearTimeout(mobileSearchTimer), mobileSearchTimer=setTimeout(()=>mobileSearch(this.value),350)) : onSearch()" />
@@ -453,8 +452,9 @@
               <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
               Export CSV
             </button>
-          </div>
-
+        </div>
+        <!-- List view: only this area gets replaced on mobile search -->
+        <div id="search-list-view">
           <!-- Selection bar -->
           <div id="selection-bar">
             <span class="sel-count" id="sel-count-text">0 selected</span>
@@ -480,7 +480,7 @@
             </table>
           </div>
           <div class="pagination" id="pagination"></div>
-        </div>
+        </div><!-- /search-list-view -->
 
         <!-- Detail view -->
         <div id="detail-view" style="display:none">
@@ -1503,11 +1503,22 @@ async function loadMobile() {
 function initMobile() {
   $('loading-screen').style.display = 'none';
   $('app').style.display = 'flex';
-  // Hide dashboard and sidebar, show search directly
+  // Hide dashboard, sidebar, and desktop-only elements
   $('sidebar').style.display = 'none';
   $('sidebar-toggle').style.display = 'none';
+  // Hide desktop-only UI inside the search header
+  const selBar = $('selection-bar');
+  if (selBar) selBar.style.display = 'none';
+  // Hide the table and pagination — mobile uses card results instead
+  const tableWrap = document.querySelector('#page-search .table-wrap');
+  if (tableWrap) tableWrap.style.display = 'none';
+  const pagination = $('pagination');
+  if (pagination) pagination.style.display = 'none';
+  // Hide export CSV button
+  const exportBtn = document.querySelector('#search-header .btn-icon');
+  if (exportBtn) exportBtn.style.display = 'none';
   showPage('search');
-  // Show mobile search prompt
+  // Show mobile search prompt in the results area
   $('search-list-view').innerHTML = `
     <div style="text-align:center;padding:48px 24px;color:var(--text2)">
       <div style="font-size:32px;margin-bottom:16px">🔍</div>
