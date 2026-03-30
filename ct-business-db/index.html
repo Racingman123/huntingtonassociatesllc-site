@@ -1488,8 +1488,14 @@ function exportSelectedCSV() {
 }
 
 // ── Mobile detection ─────────────────────────────────────────────────────
-// Use only user-agent for mobile detection — viewport width is unreliable at boot time
-const IS_MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+// Use multiple signals: user-agent, touch support, screen size, and device memory.
+// Loading 436K records requires ~500MB RAM — anything under 4GB should use mobile mode.
+const _ua = navigator.userAgent;
+const _isMobileUA = /Android|iPhone|iPad|iPod|Mobile|BlackBerry|IEMobile|Opera Mini/i.test(_ua);
+const _isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+const _isSmallScreen = window.screen.width <= 1024 || window.innerWidth <= 1024;
+const _isLowMemory = (navigator.deviceMemory || 8) < 4; // deviceMemory in GB, undefined = assume desktop
+const IS_MOBILE = _isMobileUA || (_isTouch && _isSmallScreen) || _isLowMemory;
 
 // ── Mobile state ──────────────────────────────────────────────────────────
 let MOBILE_SHARD_CACHE = {};  // letter -> array of records
