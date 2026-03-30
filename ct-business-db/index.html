@@ -1224,16 +1224,25 @@ async function openDetail(id) {
     return `<div><div class="detail-field-label">${esc(f.label)}</div><div class="detail-field-value">${valHtml}</div>${extra}</div>`;
   }).join('');
 
-  // CT SOS filing link
-  const ctSosName = encodeURIComponent(biz.n || '');
-  const ctSosUrl = `https://service.ct.gov/business/s/onlinebusinesssearch?language=en_US&businessName=${ctSosName}`;
+  // CT SOS filing link — the portal uses encrypted tokens so we can't deep-link;
+  // instead link to the search page and provide a copy button for the business name.
+  const ctSosSearchUrl = 'https://service.ct.gov/business/s/onlinebusinesssearch?language=en_US';
+  const bizNameForCopy = (biz.n || '').replace(/'/g, "\\'");
   const ctSosHtml = `
-    <div style="margin-top:16px;padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-      <span style="font-size:13px;color:var(--text2);flex:1">View official filings, articles of incorporation &amp; annual reports:</span>
-      <a href="${ctSosUrl}" target="_blank" rel="noopener"
-         style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;background:var(--accent);color:#fff;border-radius:6px;font-size:13px;font-weight:500;text-decoration:none">
-        🏙️ CT Secretary of State
-      </a>
+    <div style="margin-top:16px;padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:8px">
+      <div style="font-size:12px;color:var(--text2);margin-bottom:8px">View official filings, articles of incorporation &amp; annual reports on the CT Secretary of State portal:</div>
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <code style="flex:1;min-width:0;font-size:12px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:5px 8px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(biz.n||'')}</code>
+        <button onclick="navigator.clipboard.writeText('${bizNameForCopy}').then(()=>showToast('Business name copied — paste it in the CT SOS search'))"
+          style="padding:5px 10px;background:var(--bg2);border:1px solid var(--border2);border-radius:4px;font-size:12px;color:var(--text);cursor:pointer;white-space:nowrap">
+          📋 Copy Name
+        </button>
+        <a href="${ctSosSearchUrl}" target="_blank" rel="noopener"
+           style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;background:var(--accent);color:#fff;border-radius:4px;font-size:12px;font-weight:500;text-decoration:none;white-space:nowrap">
+          🏙️ Open CT SOS Search
+        </a>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:6px">Paste the copied name into the search box on the CT SOS page to find this business.</div>
     </div>`;
   $('d-grid').insertAdjacentHTML('afterend', ctSosHtml);
 
@@ -1618,8 +1627,19 @@ function mobileChangePage(dir) {
   window.scrollTo(0, 0);
 }
 
-async function mobileOpenDetail(bizId, chunkIdx) {
-  // Load the full biz chunk if not cached
+// Synchronous entry point — immediately switches to detail view to avoid iOS gesture loss
+function mobileOpenDetail(bizId, chunkIdx) {
+  // Show detail view immediately (synchronous) so iOS doesn't block the navigation
+  $('search-list-view').style.display = 'none';
+  $('detail-view').style.display = 'block';
+  $('d-name').textContent = 'Loading…';
+  $('d-meta').textContent = '';
+  $('d-grid').innerHTML = '<div class="loading-detail"><span class="spinner"></span>Loading business…</div>';
+  // Then do the async work
+  _mobileLoadAndOpen(bizId, chunkIdx);
+}
+
+async function _mobileLoadAndOpen(bizId, chunkIdx) {
   if (!MOBILE_BIZ_CACHE[chunkIdx]) {
     const pad = String(chunkIdx).padStart(3,'0');
     await loadScript(`data/biz_${pad}.js`);
@@ -1629,7 +1649,6 @@ async function mobileOpenDetail(bizId, chunkIdx) {
     const map = {};
     chunk.forEach(b => { map[b.id] = b; ALL_MAP[b.id] = b; });
     MOBILE_BIZ_CACHE[chunkIdx] = map;
-    // Add to ALL for compatibility with renderPrincipals/renderAgents
     chunk.forEach(b => { if (!ALL_MAP[b.id]) ALL.push(b); });
   }
   openDetail(bizId);
