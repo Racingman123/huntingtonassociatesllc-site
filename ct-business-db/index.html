@@ -2066,11 +2066,23 @@ async function _mobileLoadAndOpen(bizId, pc, ac) {
   // Load owner_net files for all principal names (covers all chunks, not just current one)
   const prins = (PRINCIPALS || {})[bizId] || [];
   const prinFirstLetters = new Set(prins.map(p => (p.n||'')[0]).filter(Boolean).map(l => l.toLowerCase()));
-  // Also load pname shard for current chunk (for biz name lookup)
-  const pnameLoads = [];
-  if (_pcResolved >= 0) pnameLoads.push(loadPnameShard(_pcResolved));
-  prinFirstLetters.forEach(l => pnameLoads.push(loadOwnerNet(l)));
-  await Promise.all(pnameLoads);
+  // Step 1: load owner_net files to get complete list of network biz IDs
+  const ownerNetLoads = [];
+  prinFirstLetters.forEach(l => ownerNetLoads.push(loadOwnerNet(l)));
+  await Promise.all(ownerNetLoads);
+  // Step 2: collect all network biz IDs and find which pname chunks they need
+  const pnameIdx = (window.__PNAME_IDX || {}).p || {};
+  const neededPnameChunks = new Set();
+  if (_pcResolved >= 0) neededPnameChunks.add(_pcResolved);
+  prins.forEach(p => {
+    const ids = ownerNetGet(p.n||'');
+    ids.forEach(id => {
+      const c = pnameIdx[id];
+      if (c !== undefined) neededPnameChunks.add(c);
+    });
+  });
+  // Step 3: load all needed pname chunks in parallel
+  await Promise.all([...neededPnameChunks].map(c => loadPnameShard(c)));
   renderPrincipals(biz, bizId, _pcResolved);
 
   // Load agent chunk
@@ -2099,10 +2111,23 @@ async function _mobileLoadAndOpen(bizId, pc, ac) {
   // Load agent_net files for all agent names (covers all chunks)
   const agts = (AGENTS || {})[bizId] || [];
   const agtFirstLetters = new Set(agts.map(a => (a.n||'')[0]).filter(Boolean).map(l => l.toLowerCase()));
-  const anameLoads = [];
-  if (_acResolved >= 0) anameLoads.push(loadAnameShard(_acResolved));
-  agtFirstLetters.forEach(l => anameLoads.push(loadAgentNet(l)));
-  await Promise.all(anameLoads);
+  // Step 1: load agent_net files
+  const agentNetLoads = [];
+  agtFirstLetters.forEach(l => agentNetLoads.push(loadAgentNet(l)));
+  await Promise.all(agentNetLoads);
+  // Step 2: collect network biz IDs and find which aname chunks they need
+  const anameIdx = (window.__PNAME_IDX || {}).a || {};
+  const neededAnameChunks = new Set();
+  if (_acResolved >= 0) neededAnameChunks.add(_acResolved);
+  agts.forEach(a => {
+    const ids = agentNetGet(a.n||'');
+    ids.forEach(id => {
+      const c = anameIdx[id];
+      if (c !== undefined) neededAnameChunks.add(c);
+    });
+  });
+  // Step 3: load all needed aname chunks in parallel
+  await Promise.all([...neededAnameChunks].map(c => loadAnameShard(c)));
   renderAgents(bizId, biz, _acResolved);
 }
 
