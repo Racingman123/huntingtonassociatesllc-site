@@ -1439,9 +1439,9 @@ function renderPrincipals(biz, bizId, prinChunkIdx) {
     let networkHtml = '';
     if (networkCount > 0) {
       if (IS_MOBILE) {
-        // On mobile: use OWNER_INDEX (populated from the loaded prin chunk) to get other biz IDs,
-        // then resolve names via pnameGet() from the pre-loaded pname shard.
-        const mobileOtherIds = OWNER_INDEX[normName] ? [...OWNER_INDEX[normName]].filter(id => id !== bizId) : [];
+        // Use ownerNetGet() which reads from owner_net_{letter}.js — covers ALL chunks
+        const allNetIds = ownerNetGet(name);
+        const mobileOtherIds = allNetIds.filter(id => id !== bizId);
         const resolvedIds = mobileOtherIds.filter(id => pnameGet(id, prinChunkIdx) !== null);
         const MAX_LIST = 100;
         const listIds = resolvedIds.slice(0, MAX_LIST);
@@ -1518,7 +1518,9 @@ function renderAgents(bizId, biz, agtChunkIdx) {
     let networkHtml = '';
     if (networkCount > 0) {
       if (IS_MOBILE) {
-        const mobileAgtOtherIds = AGENT_INDEX[normName] ? [...AGENT_INDEX[normName]].filter(id => id !== bizId) : [];
+        // Use agentNetGet() which reads from agent_net_{letter}.js — covers ALL chunks
+        const allAgtNetIds = agentNetGet(a.n||'');
+        const mobileAgtOtherIds = allAgtNetIds.filter(id => id !== bizId);
         const resolvedAgtIds = mobileAgtOtherIds.filter(id => anameGet(id, agtChunkIdx) !== null);
         const MAX_LIST = 100;
         const listIds = resolvedAgtIds.slice(0, MAX_LIST);
@@ -1662,10 +1664,54 @@ let MOBILE_BIZ_CACHE   = {};  // chunkIdx -> {id: record}
 let BNAME_CACHE        = {};  // letter -> {bizId: {n,bt,ci}} — loaded on demand (legacy)
 let PNAME_CACHE        = {};  // prinChunkIdx -> {bizId: {n,bt,ci}} — loaded alongside prin chunks
 let ANAME_CACHE        = {};  // agtChunkIdx  -> {bizId: {n,bt,ci}} — loaded alongside agt chunks
+let OWNER_NET_CACHE    = {};  // letter -> {name -> [bizId,...]} — complete cross-chunk owner network
+let AGENT_NET_CACHE    = {};  // letter -> {name -> [bizId,...]} — complete cross-chunk agent network
 let mobileSearchTimer  = null;
 let mobileSearchResults = [];
 let mobileResultsPage  = 0;
 const MOBILE_PAGE_SIZE = 30;
+
+// Load owner_net_{letter}.js — complete owner network for names starting with that letter
+async function loadOwnerNet(letter) {
+  const l = letter.toLowerCase();
+  if (OWNER_NET_CACHE[l] !== undefined) return;
+  OWNER_NET_CACHE[l] = null; // mark loading
+  try {
+    await loadScript(`data/owner_net_${l}.js`);
+    const varName = `__OWNER_NET_${l.toUpperCase()}`;
+    OWNER_NET_CACHE[l] = window[varName] || {};
+    delete window[varName];
+  } catch(e) { OWNER_NET_CACHE[l] = {}; }
+}
+
+// Load agent_net_{letter}.js — complete agent network for names starting with that letter
+async function loadAgentNet(letter) {
+  const l = letter.toLowerCase();
+  if (AGENT_NET_CACHE[l] !== undefined) return;
+  AGENT_NET_CACHE[l] = null;
+  try {
+    await loadScript(`data/agent_net_${l}.js`);
+    const varName = `__AGENT_NET_${l.toUpperCase()}`;
+    AGENT_NET_CACHE[l] = window[varName] || {};
+    delete window[varName];
+  } catch(e) { AGENT_NET_CACHE[l] = {}; }
+}
+
+// Get all biz IDs for a person from the owner network cache
+function ownerNetGet(name) {
+  const l = (name||'')[0];
+  if (!l) return [];
+  const map = OWNER_NET_CACHE[l.toLowerCase()];
+  return (map && map[name.toLowerCase()]) || [];
+}
+
+// Get all biz IDs for an agent from the agent network cache
+function agentNetGet(name) {
+  const l = (name||'')[0];
+  if (!l) return [];
+  const map = AGENT_NET_CACHE[l.toLowerCase()];
+  return (map && map[name.toLowerCase()]) || [];
+}
 
 // Load a pname_NNN.js file (biz names for a given principal chunk) into PNAME_CACHE
 async function loadPnameShard(chunkIdx) {
@@ -2017,22 +2063,14 @@ async function _mobileLoadAndOpen(bizId, pc, ac) {
     PRINCIPALS = PRINCIPALS || {};
   }
 
-  // Collect all network biz IDs for principals and find which pname chunks are needed
+  // Load owner_net files for all principal names (covers all chunks, not just current one)
   const prins = (PRINCIPALS || {})[bizId] || [];
-  const prinNetworkIds = new Set();
-  prins.forEach(p => {
-    const k = (p.n||'').trim().toLowerCase();
-    if (OWNER_INDEX[k]) OWNER_INDEX[k].forEach(id => { if (id !== bizId) prinNetworkIds.add(id); });
-  });
-  // Use pname_idx to find which pname chunks contain these biz IDs, load them all in parallel
-  const pnameIdx = (window.__PNAME_IDX || {}).p || {};
-  const neededPnameChunks = new Set();
-  if (_pcResolved >= 0) neededPnameChunks.add(_pcResolved); // always load current chunk
-  prinNetworkIds.forEach(id => {
-    const c = pnameIdx[id];
-    if (c !== undefined) neededPnameChunks.add(c);
-  });
-  await Promise.all([...neededPnameChunks].map(c => loadPnameShard(c)));
+  const prinFirstLetters = new Set(prins.map(p => (p.n||'')[0]).filter(Boolean).map(l => l.toLowerCase()));
+  // Also load pname shard for current chunk (for biz name lookup)
+  const pnameLoads = [];
+  if (_pcResolved >= 0) pnameLoads.push(loadPnameShard(_pcResolved));
+  prinFirstLetters.forEach(l => pnameLoads.push(loadOwnerNet(l)));
+  await Promise.all(pnameLoads);
   renderPrincipals(biz, bizId, _pcResolved);
 
   // Load agent chunk
@@ -2058,21 +2096,13 @@ async function _mobileLoadAndOpen(bizId, pc, ac) {
     AGENTS = AGENTS || {};
   }
 
-  // Collect all network biz IDs for agents and find which aname chunks are needed
+  // Load agent_net files for all agent names (covers all chunks)
   const agts = (AGENTS || {})[bizId] || [];
-  const agtNetworkIds = new Set();
-  agts.forEach(a => {
-    const k = (a.n||'').trim().toLowerCase();
-    if (AGENT_INDEX[k]) AGENT_INDEX[k].forEach(id => { if (id !== bizId) agtNetworkIds.add(id); });
-  });
-  const anameIdx = (window.__PNAME_IDX || {}).a || {};
-  const neededAnameChunks = new Set();
-  if (_acResolved >= 0) neededAnameChunks.add(_acResolved);
-  agtNetworkIds.forEach(id => {
-    const c = anameIdx[id];
-    if (c !== undefined) neededAnameChunks.add(c);
-  });
-  await Promise.all([...neededAnameChunks].map(c => loadAnameShard(c)));
+  const agtFirstLetters = new Set(agts.map(a => (a.n||'')[0]).filter(Boolean).map(l => l.toLowerCase()));
+  const anameLoads = [];
+  if (_acResolved >= 0) anameLoads.push(loadAnameShard(_acResolved));
+  agtFirstLetters.forEach(l => anameLoads.push(loadAgentNet(l)));
+  await Promise.all(anameLoads);
   renderAgents(bizId, biz, _acResolved);
 }
 
