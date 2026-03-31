@@ -1396,7 +1396,7 @@ function renderVelocityBar(v) {
   return `<div class="velocity-bar">${dots}<span class="velocity-label">${esc(v.label)}</span></div>`;
 }
 
-function renderPrincipals(biz, bizId) {
+function renderPrincipals(biz, bizId, prinChunkIdx) {
   const prins = (PRINCIPALS || {})[bizId] || [];
   if (!prins.length) {
     $('tab-principals').innerHTML = '<div class="empty-state">No principals on file</div>';
@@ -1439,23 +1439,22 @@ function renderPrincipals(biz, bizId) {
     let networkHtml = '';
     if (networkCount > 0) {
       if (IS_MOBILE) {
-        // On mobile: use OWNER_INDEX (populated from the loaded chunk) to get other biz IDs,
-        // then resolve names via bnameGet() from the lazy-loaded bname shards.
-        // Filter out IDs that can't be resolved (dissolved/inactive businesses not in dataset).
+        // On mobile: use OWNER_INDEX (populated from the loaded prin chunk) to get other biz IDs,
+        // then resolve names via pnameGet() from the pre-loaded pname shard.
         const mobileOtherIds = OWNER_INDEX[normName] ? [...OWNER_INDEX[normName]].filter(id => id !== bizId) : [];
-        const resolvedIds = mobileOtherIds.filter(id => bnameGet(id) !== null);
+        const resolvedIds = mobileOtherIds.filter(id => pnameGet(id, prinChunkIdx) !== null);
         const MAX_LIST = 100;
         const listIds = resolvedIds.slice(0, MAX_LIST);
         const remainder = resolvedIds.length - listIds.length;
         const unresolved = mobileOtherIds.length - resolvedIds.length;
         const listHtml = listIds.map(oid => {
-          const ob = bnameGet(oid);
+          const ob = pnameGet(oid, prinChunkIdx);
           const obName = ob.n || oid;
           const obMeta = [ob.bt, ob.ci ? toTitleCase(ob.ci) : ''].filter(Boolean).join(' · ');
           return `<div class="owner-biz-link" onclick="mobileOpenDetail('${esc(oid)}', -1, -1)">${esc(obName)}<span class="owner-biz-meta">${obMeta ? ' — ' + esc(obMeta) : ''}</span></div>`;
         }).join('');
-        const moreHtml = remainder > 0 ? `<div style="font-size:11px;color:var(--text3);padding:4px 0">… and ${remainder} more active businesses (see desktop for full list)</div>` : '';
-        const inactiveNote = unresolved > 0 ? `<div style="font-size:11px;color:var(--text3);padding:2px 0">(${unresolved} additional inactive/dissolved businesses not shown)</div>` : '';
+        const moreHtml = remainder > 0 ? `<div style="font-size:11px;color:var(--text3);padding:4px 0">… and ${remainder} more (see desktop for full list)</div>` : '';
+        const inactiveNote = unresolved > 0 ? `<div style="font-size:11px;color:var(--text3);padding:2px 0">(${unresolved} additional businesses not in dataset)</div>` : '';
         if (listIds.length > 0) {
           networkHtml = `
             <div class="network-badge-label">🔗 Also on file for ${networkCount} other business${networkCount>1?'es':''}:</div>
@@ -1499,7 +1498,7 @@ function renderPrincipals(biz, bizId) {
   </table></div>`;
 }
 
-function renderAgents(bizId, biz) {
+function renderAgents(bizId, biz, agtChunkIdx) {
   const agents = (AGENTS || {})[bizId] || [];
   if (!agents.length) {
     $('tab-agents').innerHTML = '<div class="empty-state">No registered agents on file</div>';
@@ -1520,19 +1519,19 @@ function renderAgents(bizId, biz) {
     if (networkCount > 0) {
       if (IS_MOBILE) {
         const mobileAgtOtherIds = AGENT_INDEX[normName] ? [...AGENT_INDEX[normName]].filter(id => id !== bizId) : [];
-        const resolvedAgtIds = mobileAgtOtherIds.filter(id => bnameGet(id) !== null);
+        const resolvedAgtIds = mobileAgtOtherIds.filter(id => anameGet(id, agtChunkIdx) !== null);
         const MAX_LIST = 100;
         const listIds = resolvedAgtIds.slice(0, MAX_LIST);
         const remainder = resolvedAgtIds.length - listIds.length;
         const unresolved = mobileAgtOtherIds.length - resolvedAgtIds.length;
         const listHtml = listIds.map(oid => {
-          const ob = bnameGet(oid);
+          const ob = anameGet(oid, agtChunkIdx);
           const obName = ob.n || oid;
           const obMeta = [ob.bt, ob.ci ? toTitleCase(ob.ci) : ''].filter(Boolean).join(' · ');
           return `<div class="owner-biz-link" onclick="mobileOpenDetail('${esc(oid)}', -1, -1)">${esc(obName)}<span class="owner-biz-meta">${obMeta ? ' — ' + esc(obMeta) : ''}</span></div>`;
         }).join('');
-        const moreHtml = remainder > 0 ? `<div style="font-size:11px;color:var(--text3);padding:4px 0">… and ${remainder} more active businesses (see desktop for full list)</div>` : '';
-        const inactiveNote = unresolved > 0 ? `<div style="font-size:11px;color:var(--text3);padding:2px 0">(${unresolved} additional inactive/dissolved businesses not shown)</div>` : '';
+        const moreHtml = remainder > 0 ? `<div style="font-size:11px;color:var(--text3);padding:4px 0">… and ${remainder} more (see desktop for full list)</div>` : '';
+        const inactiveNote = unresolved > 0 ? `<div style="font-size:11px;color:var(--text3);padding:2px 0">(${unresolved} additional businesses not in dataset)</div>` : '';
         if (listIds.length > 0) {
           networkHtml = `
             <div class="network-badge-label">🔗 Registered agent for ${networkCount} other business${networkCount>1?'es':''}:</div>
@@ -1660,33 +1659,80 @@ const IS_MOBILE = _isMobileUA || (_isTouch && _isSmallScreen) || _isLowMemory;
 // ── Mobile state ──────────────────────────────────────────────────────────
 let MOBILE_SHARD_CACHE = {};  // letter -> array of records
 let MOBILE_BIZ_CACHE   = {};  // chunkIdx -> {id: record}
-let BNAME_CACHE        = {};  // letter -> {bizId: {n,bt,ci}} — loaded on demand
+let BNAME_CACHE        = {};  // letter -> {bizId: {n,bt,ci}} — loaded on demand (legacy)
+let PNAME_CACHE        = {};  // prinChunkIdx -> {bizId: {n,bt,ci}} — loaded alongside prin chunks
+let ANAME_CACHE        = {};  // agtChunkIdx  -> {bizId: {n,bt,ci}} — loaded alongside agt chunks
 let mobileSearchTimer  = null;
 let mobileSearchResults = [];
 let mobileResultsPage  = 0;
 const MOBILE_PAGE_SIZE = 30;
 
-// Load a bname_*.js letter shard and merge into BNAME_CACHE
-async function loadBnameShard(letter) {
-  if (BNAME_CACHE[letter] !== undefined) return; // already loaded
-  BNAME_CACHE[letter] = null; // mark as loading
+// Load a pname_NNN.js file (biz names for a given principal chunk) into PNAME_CACHE
+async function loadPnameShard(chunkIdx) {
+  if (PNAME_CACHE[chunkIdx] !== undefined) return;
+  PNAME_CACHE[chunkIdx] = null; // mark as loading
   try {
-    await loadScript(`data/bname_${letter}.js`);
-    const varName = `__BNAME_${letter.toUpperCase()}`;
-    BNAME_CACHE[letter] = window[varName] || {};
+    const pad = String(chunkIdx).padStart(3,'0');
+    await loadScript(`data/pname_${pad}.js`);
+    const varName = `__PNAME_${pad}`;
+    PNAME_CACHE[chunkIdx] = window[varName] || {};
     delete window[varName];
   } catch(e) {
-    BNAME_CACHE[letter] = {}; // treat as empty on error
+    PNAME_CACHE[chunkIdx] = {};
   }
 }
 
-// Look up a biz record from BNAME_CACHE (returns null if not loaded yet)
+// Load an aname_NNN.js file (biz names for a given agent chunk) into ANAME_CACHE
+async function loadAnameShard(chunkIdx) {
+  if (ANAME_CACHE[chunkIdx] !== undefined) return;
+  ANAME_CACHE[chunkIdx] = null; // mark as loading
+  try {
+    const pad = String(chunkIdx).padStart(3,'0');
+    await loadScript(`data/aname_${pad}.js`);
+    const varName = `__ANAME_${pad}`;
+    ANAME_CACHE[chunkIdx] = window[varName] || {};
+    delete window[varName];
+  } catch(e) {
+    ANAME_CACHE[chunkIdx] = {};
+  }
+}
+
+// Look up a biz name record from PNAME_CACHE by chunk index
+function pnameGet(bizId, chunkIdx) {
+  const map = PNAME_CACHE[chunkIdx];
+  if (map && map[bizId]) return map[bizId];
+  // Fallback: check all loaded pname caches
+  for (const m of Object.values(PNAME_CACHE)) {
+    if (m && m[bizId]) return m[bizId];
+  }
+  // Fallback: check MOBILE_SHARD_CACHE
+  for (const shard of Object.values(MOBILE_SHARD_CACHE)) {
+    const found = shard.find(r => r.id === bizId);
+    if (found) return {n: found.n, bt: found.bt, ci: found.ci};
+  }
+  return null;
+}
+
+// Look up a biz name record from ANAME_CACHE by chunk index
+function anameGet(bizId, chunkIdx) {
+  const map = ANAME_CACHE[chunkIdx];
+  if (map && map[bizId]) return map[bizId];
+  for (const m of Object.values(ANAME_CACHE)) {
+    if (m && m[bizId]) return m[bizId];
+  }
+  for (const shard of Object.values(MOBILE_SHARD_CACHE)) {
+    const found = shard.find(r => r.id === bizId);
+    if (found) return {n: found.n, bt: found.bt, ci: found.ci};
+  }
+  return null;
+}
+
+// Legacy bname lookup (kept for BNAME_CACHE fallback)
 function bnameGet(bizId) {
   for (const letter of Object.keys(BNAME_CACHE)) {
     const map = BNAME_CACHE[letter];
     if (map && map[bizId]) return map[bizId];
   }
-  // Also check MOBILE_SHARD_CACHE (already-loaded search shards)
   for (const shard of Object.values(MOBILE_SHARD_CACHE)) {
     const found = shard.find(r => r.id === bizId);
     if (found) return {n: found.n, bt: found.bt, ci: found.ci};
@@ -1967,32 +2013,11 @@ async function _mobileLoadAndOpen(bizId, pc, ac) {
     PRINCIPALS = PRINCIPALS || {};
   }
 
-  // After loading the prin chunk, collect other biz IDs for each principal name
-  // and pre-load the bname letter-shards needed to resolve their names
-  const prins = (PRINCIPALS || {})[bizId] || [];
-  const prinNetworkIds = new Set();
-  prins.forEach(p => {
-    const k = (p.n||'').trim().toLowerCase();
-    if (OWNER_INDEX[k]) OWNER_INDEX[k].forEach(id => { if (id !== bizId) prinNetworkIds.add(id); });
-  });
-  // Determine which bname letter-shards are needed
-  // We don't know the first letter yet, so load bname shards for all letters
-  // that appear among the other biz IDs by checking already-loaded caches first,
-  // then loading the needed shards. Strategy: load all bname shards that aren't
-  // loaded yet, but only if there are other biz IDs to resolve (cap at loading
-  // up to 5 letter-shards to avoid too much data).
-  if (prinNetworkIds.size > 0) {
-    // Find which letters we still need by checking what's already in BNAME_CACHE
-    const unresolved = [...prinNetworkIds].filter(id => !bnameGet(id));
-    if (unresolved.length > 0) {
-      // Load all 27 bname shards in parallel (they're small, 127KB-3MB each)
-      // but only those not yet cached
-      const letters = '0abcdefghijklmnopqrstuvwxyz'.split('');
-      const toLoad = letters.filter(l => BNAME_CACHE[l] === undefined);
-      await Promise.all(toLoad.map(l => loadBnameShard(l)));
-    }
+  // Load pname shard for this prin chunk (biz names keyed by biz ID)
+  if (_pcResolved >= 0) {
+    await loadPnameShard(_pcResolved);
   }
-  renderPrincipals(biz, bizId);
+  renderPrincipals(biz, bizId, _pcResolved);
 
   // Load agent chunk
   if (_acResolved >= 0) {
@@ -2017,22 +2042,11 @@ async function _mobileLoadAndOpen(bizId, pc, ac) {
     AGENTS = AGENTS || {};
   }
 
-  // Pre-load bname shards for agent network if not already loaded
-  const agts = (AGENTS || {})[bizId] || [];
-  const agtNetworkIds = new Set();
-  agts.forEach(a => {
-    const k = (a.n||'').trim().toLowerCase();
-    if (AGENT_INDEX[k]) AGENT_INDEX[k].forEach(id => { if (id !== bizId) agtNetworkIds.add(id); });
-  });
-  if (agtNetworkIds.size > 0) {
-    const unresolved = [...agtNetworkIds].filter(id => !bnameGet(id));
-    if (unresolved.length > 0) {
-      const letters = '0abcdefghijklmnopqrstuvwxyz'.split('');
-      const toLoad = letters.filter(l => BNAME_CACHE[l] === undefined);
-      await Promise.all(toLoad.map(l => loadBnameShard(l)));
-    }
+  // Load aname shard for this agt chunk (biz names keyed by biz ID)
+  if (_acResolved >= 0) {
+    await loadAnameShard(_acResolved);
   }
-  renderAgents(bizId, biz);
+  renderAgents(bizId, biz, _acResolved);
 }
 
 // ── Boot ───────────────────────────────────────────────────────────────────
