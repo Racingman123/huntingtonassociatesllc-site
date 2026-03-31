@@ -1439,8 +1439,29 @@ function renderPrincipals(biz, bizId) {
     let networkHtml = '';
     if (networkCount > 0) {
       if (IS_MOBILE) {
-        // On mobile we have the accurate count but not the full list of businesses
-        networkHtml = `<div class="network-badge-label">🔗 Also on file for ${networkCount} other business${networkCount>1?'es':''}</div>`;
+        // On mobile: use OWNER_INDEX (populated from the loaded chunk) to get other biz IDs,
+        // then resolve names via bnameGet() from the lazy-loaded bname shards
+        const mobileOtherIds = OWNER_INDEX[normName] ? [...OWNER_INDEX[normName]].filter(id => id !== bizId) : [];
+        const MAX_LIST = 100;
+        const listIds = mobileOtherIds.slice(0, MAX_LIST);
+        const remainder = mobileOtherIds.length - listIds.length;
+        const listHtml = listIds.map(oid => {
+          const ob = bnameGet(oid);
+          const obName = ob ? ob.n : oid;
+          const obMeta = ob ? [ob.bt, ob.ci ? toTitleCase(ob.ci) : ''].filter(Boolean).join(' · ') : '';
+          return `<div class="owner-biz-link" onclick="mobileOpenDetail('${esc(oid)}', -1, -1)">${esc(obName)}<span class="owner-biz-meta">${obMeta ? ' — ' + esc(obMeta) : ''}</span></div>`;
+        }).join('');
+        const moreHtml = remainder > 0 ? `<div style="font-size:11px;color:var(--text3);padding:4px 0">… and ${remainder} more (see desktop for full list)</div>` : '';
+        if (listIds.length > 0) {
+          networkHtml = `
+            <div class="network-badge-label">🔗 Also on file for ${networkCount} other business${networkCount>1?'es':''}:</div>
+            <div class="owner-panel">
+              <div class="owner-panel-title">${esc(name)} is also on file for (${networkCount} total):</div>
+              ${listHtml}${moreHtml}
+            </div>`;
+        } else {
+          networkHtml = `<div class="network-badge-label">🔗 Also on file for ${networkCount} other business${networkCount>1?'es':''}</div>`;
+        }
       } else {
         const panelId = 'np-' + Math.random().toString(36).slice(2);
         const otherBizList = otherBizIds.map(oid => {
@@ -1494,7 +1515,27 @@ function renderAgents(bizId, biz) {
     let networkHtml = '';
     if (networkCount > 0) {
       if (IS_MOBILE) {
-        networkHtml = `<div class="network-badge-label">🔗 Registered agent for ${networkCount} other business${networkCount>1?'es':''}</div>`;
+        const mobileAgtOtherIds = AGENT_INDEX[normName] ? [...AGENT_INDEX[normName]].filter(id => id !== bizId) : [];
+        const MAX_LIST = 100;
+        const listIds = mobileAgtOtherIds.slice(0, MAX_LIST);
+        const remainder = mobileAgtOtherIds.length - listIds.length;
+        const listHtml = listIds.map(oid => {
+          const ob = bnameGet(oid);
+          const obName = ob ? ob.n : oid;
+          const obMeta = ob ? [ob.bt, ob.ci ? toTitleCase(ob.ci) : ''].filter(Boolean).join(' · ') : '';
+          return `<div class="owner-biz-link" onclick="mobileOpenDetail('${esc(oid)}', -1, -1)">${esc(obName)}<span class="owner-biz-meta">${obMeta ? ' — ' + esc(obMeta) : ''}</span></div>`;
+        }).join('');
+        const moreHtml = remainder > 0 ? `<div style="font-size:11px;color:var(--text3);padding:4px 0">… and ${remainder} more (see desktop for full list)</div>` : '';
+        if (listIds.length > 0) {
+          networkHtml = `
+            <div class="network-badge-label">🔗 Registered agent for ${networkCount} other business${networkCount>1?'es':''}:</div>
+            <div class="owner-panel">
+              <div class="owner-panel-title">${esc(a.n||'')} is also registered agent for (${networkCount} total):</div>
+              ${listHtml}${moreHtml}
+            </div>`;
+        } else {
+          networkHtml = `<div class="network-badge-label">🔗 Registered agent for ${networkCount} other business${networkCount>1?'es':''}</div>`;
+        }
       } else {
         const panelId = 'ap-' + Math.random().toString(36).slice(2);
         const list = otherBizIds.map(oid => {
@@ -1612,10 +1653,39 @@ const IS_MOBILE = _isMobileUA || (_isTouch && _isSmallScreen) || _isLowMemory;
 // ── Mobile state ──────────────────────────────────────────────────────────
 let MOBILE_SHARD_CACHE = {};  // letter -> array of records
 let MOBILE_BIZ_CACHE   = {};  // chunkIdx -> {id: record}
+let BNAME_CACHE        = {};  // letter -> {bizId: {n,bt,ci}} — loaded on demand
 let mobileSearchTimer  = null;
 let mobileSearchResults = [];
 let mobileResultsPage  = 0;
 const MOBILE_PAGE_SIZE = 30;
+
+// Load a bname_*.js letter shard and merge into BNAME_CACHE
+async function loadBnameShard(letter) {
+  if (BNAME_CACHE[letter] !== undefined) return; // already loaded
+  BNAME_CACHE[letter] = null; // mark as loading
+  try {
+    await loadScript(`data/bname_${letter}.js`);
+    const varName = `__BNAME_${letter.toUpperCase()}`;
+    BNAME_CACHE[letter] = window[varName] || {};
+    delete window[varName];
+  } catch(e) {
+    BNAME_CACHE[letter] = {}; // treat as empty on error
+  }
+}
+
+// Look up a biz record from BNAME_CACHE (returns null if not loaded yet)
+function bnameGet(bizId) {
+  for (const letter of Object.keys(BNAME_CACHE)) {
+    const map = BNAME_CACHE[letter];
+    if (map && map[bizId]) return map[bizId];
+  }
+  // Also check MOBILE_SHARD_CACHE (already-loaded search shards)
+  for (const shard of Object.values(MOBILE_SHARD_CACHE)) {
+    const found = shard.find(r => r.id === bizId);
+    if (found) return {n: found.n, bt: found.bt, ci: found.ci};
+  }
+  return null;
+}
 
 // ── Mobile boot ───────────────────────────────────────────────────────────
 async function loadMobile() {
@@ -1779,6 +1849,25 @@ async function _mobileLoadAndOpen(bizId, pc, ac) {
     }
   }
   if (!biz) {
+    // Try BNAME_CACHE (has name/type/city but not full record)
+    const bnameRec = bnameGet(bizId);
+    if (bnameRec) {
+      // Load the correct mshard to get the full record
+      const firstLetter = (bnameRec.n || '')[0];
+      const shardKey = firstLetter ? (firstLetter.toLowerCase().match(/[a-z]/) ? firstLetter.toLowerCase() : '0') : '0';
+      if (!MOBILE_SHARD_CACHE[shardKey]) {
+        try {
+          await loadScript(`data/mshard_${shardKey}.js`);
+          const varName = `__MSHARD_${shardKey.toUpperCase()}`;
+          MOBILE_SHARD_CACHE[shardKey] = window[varName] || [];
+          delete window[varName];
+        } catch(e) { /* ignore */ }
+      }
+      const found = (MOBILE_SHARD_CACHE[shardKey] || []).find(r => r.id === bizId);
+      if (found) { biz = found; ALL_MAP[bizId] = found; }
+    }
+  }
+  if (!biz) {
     $('d-grid').innerHTML = '<div class="empty-state">Business not found.</div>';
     return;
   }
@@ -1862,6 +1951,32 @@ async function _mobileLoadAndOpen(bizId, pc, ac) {
   } else {
     PRINCIPALS = PRINCIPALS || {};
   }
+
+  // After loading the prin chunk, collect other biz IDs for each principal name
+  // and pre-load the bname letter-shards needed to resolve their names
+  const prins = (PRINCIPALS || {})[bizId] || [];
+  const prinNetworkIds = new Set();
+  prins.forEach(p => {
+    const k = (p.n||'').trim().toLowerCase();
+    if (OWNER_INDEX[k]) OWNER_INDEX[k].forEach(id => { if (id !== bizId) prinNetworkIds.add(id); });
+  });
+  // Determine which bname letter-shards are needed
+  // We don't know the first letter yet, so load bname shards for all letters
+  // that appear among the other biz IDs by checking already-loaded caches first,
+  // then loading the needed shards. Strategy: load all bname shards that aren't
+  // loaded yet, but only if there are other biz IDs to resolve (cap at loading
+  // up to 5 letter-shards to avoid too much data).
+  if (prinNetworkIds.size > 0) {
+    // Find which letters we still need by checking what's already in BNAME_CACHE
+    const unresolved = [...prinNetworkIds].filter(id => !bnameGet(id));
+    if (unresolved.length > 0) {
+      // Load all 27 bname shards in parallel (they're small, 127KB-3MB each)
+      // but only those not yet cached
+      const letters = '0abcdefghijklmnopqrstuvwxyz'.split('');
+      const toLoad = letters.filter(l => BNAME_CACHE[l] === undefined);
+      await Promise.all(toLoad.map(l => loadBnameShard(l)));
+    }
+  }
   renderPrincipals(biz, bizId);
 
   // Load agent chunk
@@ -1885,6 +2000,22 @@ async function _mobileLoadAndOpen(bizId, pc, ac) {
     }
   } else {
     AGENTS = AGENTS || {};
+  }
+
+  // Pre-load bname shards for agent network if not already loaded
+  const agts = (AGENTS || {})[bizId] || [];
+  const agtNetworkIds = new Set();
+  agts.forEach(a => {
+    const k = (a.n||'').trim().toLowerCase();
+    if (AGENT_INDEX[k]) AGENT_INDEX[k].forEach(id => { if (id !== bizId) agtNetworkIds.add(id); });
+  });
+  if (agtNetworkIds.size > 0) {
+    const unresolved = [...agtNetworkIds].filter(id => !bnameGet(id));
+    if (unresolved.length > 0) {
+      const letters = '0abcdefghijklmnopqrstuvwxyz'.split('');
+      const toLoad = letters.filter(l => BNAME_CACHE[l] === undefined);
+      await Promise.all(toLoad.map(l => loadBnameShard(l)));
+    }
   }
   renderAgents(bizId, biz);
 }
