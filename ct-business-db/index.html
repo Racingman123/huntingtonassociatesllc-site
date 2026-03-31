@@ -1440,24 +1440,28 @@ function renderPrincipals(biz, bizId) {
     if (networkCount > 0) {
       if (IS_MOBILE) {
         // On mobile: use OWNER_INDEX (populated from the loaded chunk) to get other biz IDs,
-        // then resolve names via bnameGet() from the lazy-loaded bname shards
+        // then resolve names via bnameGet() from the lazy-loaded bname shards.
+        // Filter out IDs that can't be resolved (dissolved/inactive businesses not in dataset).
         const mobileOtherIds = OWNER_INDEX[normName] ? [...OWNER_INDEX[normName]].filter(id => id !== bizId) : [];
+        const resolvedIds = mobileOtherIds.filter(id => bnameGet(id) !== null);
         const MAX_LIST = 100;
-        const listIds = mobileOtherIds.slice(0, MAX_LIST);
-        const remainder = mobileOtherIds.length - listIds.length;
+        const listIds = resolvedIds.slice(0, MAX_LIST);
+        const remainder = resolvedIds.length - listIds.length;
+        const unresolved = mobileOtherIds.length - resolvedIds.length;
         const listHtml = listIds.map(oid => {
           const ob = bnameGet(oid);
-          const obName = ob ? ob.n : oid;
-          const obMeta = ob ? [ob.bt, ob.ci ? toTitleCase(ob.ci) : ''].filter(Boolean).join(' · ') : '';
+          const obName = ob.n || oid;
+          const obMeta = [ob.bt, ob.ci ? toTitleCase(ob.ci) : ''].filter(Boolean).join(' · ');
           return `<div class="owner-biz-link" onclick="mobileOpenDetail('${esc(oid)}', -1, -1)">${esc(obName)}<span class="owner-biz-meta">${obMeta ? ' — ' + esc(obMeta) : ''}</span></div>`;
         }).join('');
-        const moreHtml = remainder > 0 ? `<div style="font-size:11px;color:var(--text3);padding:4px 0">… and ${remainder} more (see desktop for full list)</div>` : '';
+        const moreHtml = remainder > 0 ? `<div style="font-size:11px;color:var(--text3);padding:4px 0">… and ${remainder} more active businesses (see desktop for full list)</div>` : '';
+        const inactiveNote = unresolved > 0 ? `<div style="font-size:11px;color:var(--text3);padding:2px 0">(${unresolved} additional inactive/dissolved businesses not shown)</div>` : '';
         if (listIds.length > 0) {
           networkHtml = `
             <div class="network-badge-label">🔗 Also on file for ${networkCount} other business${networkCount>1?'es':''}:</div>
             <div class="owner-panel">
               <div class="owner-panel-title">${esc(name)} is also on file for (${networkCount} total):</div>
-              ${listHtml}${moreHtml}
+              ${listHtml}${moreHtml}${inactiveNote}
             </div>`;
         } else {
           networkHtml = `<div class="network-badge-label">🔗 Also on file for ${networkCount} other business${networkCount>1?'es':''}</div>`;
@@ -1516,22 +1520,25 @@ function renderAgents(bizId, biz) {
     if (networkCount > 0) {
       if (IS_MOBILE) {
         const mobileAgtOtherIds = AGENT_INDEX[normName] ? [...AGENT_INDEX[normName]].filter(id => id !== bizId) : [];
+        const resolvedAgtIds = mobileAgtOtherIds.filter(id => bnameGet(id) !== null);
         const MAX_LIST = 100;
-        const listIds = mobileAgtOtherIds.slice(0, MAX_LIST);
-        const remainder = mobileAgtOtherIds.length - listIds.length;
+        const listIds = resolvedAgtIds.slice(0, MAX_LIST);
+        const remainder = resolvedAgtIds.length - listIds.length;
+        const unresolved = mobileAgtOtherIds.length - resolvedAgtIds.length;
         const listHtml = listIds.map(oid => {
           const ob = bnameGet(oid);
-          const obName = ob ? ob.n : oid;
-          const obMeta = ob ? [ob.bt, ob.ci ? toTitleCase(ob.ci) : ''].filter(Boolean).join(' · ') : '';
+          const obName = ob.n || oid;
+          const obMeta = [ob.bt, ob.ci ? toTitleCase(ob.ci) : ''].filter(Boolean).join(' · ');
           return `<div class="owner-biz-link" onclick="mobileOpenDetail('${esc(oid)}', -1, -1)">${esc(obName)}<span class="owner-biz-meta">${obMeta ? ' — ' + esc(obMeta) : ''}</span></div>`;
         }).join('');
-        const moreHtml = remainder > 0 ? `<div style="font-size:11px;color:var(--text3);padding:4px 0">… and ${remainder} more (see desktop for full list)</div>` : '';
+        const moreHtml = remainder > 0 ? `<div style="font-size:11px;color:var(--text3);padding:4px 0">… and ${remainder} more active businesses (see desktop for full list)</div>` : '';
+        const inactiveNote = unresolved > 0 ? `<div style="font-size:11px;color:var(--text3);padding:2px 0">(${unresolved} additional inactive/dissolved businesses not shown)</div>` : '';
         if (listIds.length > 0) {
           networkHtml = `
             <div class="network-badge-label">🔗 Registered agent for ${networkCount} other business${networkCount>1?'es':''}:</div>
             <div class="owner-panel">
               <div class="owner-panel-title">${esc(a.n||'')} is also registered agent for (${networkCount} total):</div>
-              ${listHtml}${moreHtml}
+              ${listHtml}${moreHtml}${inactiveNote}
             </div>`;
         } else {
           networkHtml = `<div class="network-badge-label">🔗 Registered agent for ${networkCount} other business${networkCount>1?'es':''}</div>`;
@@ -1841,6 +1848,10 @@ function mobileOpenDetail(bizId, pc, ac) {
 async function _mobileLoadAndOpen(bizId, pc, ac) {
   // Step 1: find the biz record — first check ALL_MAP, then scan all loaded shard caches
   let biz = ALL_MAP[bizId];
+  // Resolve pc/ac from biz record if not provided (e.g. when called from network list links)
+  // We do this early so we can use biz.pc/biz.ac after finding the biz record below
+  let _pcResolved = pc;
+  let _acResolved = ac;
   if (!biz) {
     // Search through all cached shards for the record
     for (const shardKey of Object.keys(MOBILE_SHARD_CACHE)) {
@@ -1871,6 +1882,10 @@ async function _mobileLoadAndOpen(bizId, pc, ac) {
     $('d-grid').innerHTML = '<div class="empty-state">Business not found.</div>';
     return;
   }
+
+  // Now that we have the biz record, resolve pc/ac from it if not provided
+  if (_pcResolved < 0 && biz.pc !== undefined) _pcResolved = biz.pc;
+  if (_acResolved < 0 && biz.ac !== undefined) _acResolved = biz.ac;
 
   // Step 2: Render basic info immediately (no detail data needed)
   // Reuse openDetail's rendering logic but skip loadDetailData()
@@ -1929,10 +1944,10 @@ async function _mobileLoadAndOpen(bizId, pc, ac) {
   showTab('principals');
 
   // Load principal chunk
-  if (pc >= 0) {
+  if (_pcResolved >= 0) {
     if (!PRINCIPALS) PRINCIPALS = {};
     if (!PRINCIPALS[bizId]) {
-      const pad = String(pc).padStart(3,'0');
+      const pad = String(_pcResolved).padStart(3,'0');
       await loadScript(`data/prin_${pad}.js`);
       const key = `__PRIN_CHUNK_${pad}`;
       const chunk = window[key] || {};
@@ -1980,10 +1995,10 @@ async function _mobileLoadAndOpen(bizId, pc, ac) {
   renderPrincipals(biz, bizId);
 
   // Load agent chunk
-  if (ac >= 0) {
+  if (_acResolved >= 0) {
     if (!AGENTS) AGENTS = {};
     if (!AGENTS[bizId]) {
-      const pad = String(ac).padStart(3,'0');
+      const pad = String(_acResolved).padStart(3,'0');
       await loadScript(`data/agt_${pad}.js`);
       const key = `__AGT_CHUNK_${pad}`;
       const chunk = window[key] || {};
