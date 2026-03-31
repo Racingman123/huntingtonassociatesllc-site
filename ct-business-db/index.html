@@ -1744,9 +1744,13 @@ function bnameGet(bizId) {
 async function loadMobile() {
   try {
     setLoadBar(20, 'Loading…', '');
-    await loadScript('data/manifest.js');
+    // Load manifest, meta, and pname index in parallel
+    await Promise.all([
+      loadScript('data/manifest.js'),
+      loadScript('data/meta.js'),
+      loadScript('data/pname_idx.js'),
+    ]);
     MANIFEST = window.__MANIFEST || {};
-    await loadScript('data/meta.js');
     META = window.__META || {};
     setLoadBar(100, 'Ready', '');
     await new Promise(r => setTimeout(r, 200));
@@ -2013,10 +2017,22 @@ async function _mobileLoadAndOpen(bizId, pc, ac) {
     PRINCIPALS = PRINCIPALS || {};
   }
 
-  // Load pname shard for this prin chunk (biz names keyed by biz ID)
-  if (_pcResolved >= 0) {
-    await loadPnameShard(_pcResolved);
-  }
+  // Collect all network biz IDs for principals and find which pname chunks are needed
+  const prins = (PRINCIPALS || {})[bizId] || [];
+  const prinNetworkIds = new Set();
+  prins.forEach(p => {
+    const k = (p.n||'').trim().toLowerCase();
+    if (OWNER_INDEX[k]) OWNER_INDEX[k].forEach(id => { if (id !== bizId) prinNetworkIds.add(id); });
+  });
+  // Use pname_idx to find which pname chunks contain these biz IDs, load them all in parallel
+  const pnameIdx = (window.__PNAME_IDX || {}).p || {};
+  const neededPnameChunks = new Set();
+  if (_pcResolved >= 0) neededPnameChunks.add(_pcResolved); // always load current chunk
+  prinNetworkIds.forEach(id => {
+    const c = pnameIdx[id];
+    if (c !== undefined) neededPnameChunks.add(c);
+  });
+  await Promise.all([...neededPnameChunks].map(c => loadPnameShard(c)));
   renderPrincipals(biz, bizId, _pcResolved);
 
   // Load agent chunk
@@ -2042,10 +2058,21 @@ async function _mobileLoadAndOpen(bizId, pc, ac) {
     AGENTS = AGENTS || {};
   }
 
-  // Load aname shard for this agt chunk (biz names keyed by biz ID)
-  if (_acResolved >= 0) {
-    await loadAnameShard(_acResolved);
-  }
+  // Collect all network biz IDs for agents and find which aname chunks are needed
+  const agts = (AGENTS || {})[bizId] || [];
+  const agtNetworkIds = new Set();
+  agts.forEach(a => {
+    const k = (a.n||'').trim().toLowerCase();
+    if (AGENT_INDEX[k]) AGENT_INDEX[k].forEach(id => { if (id !== bizId) agtNetworkIds.add(id); });
+  });
+  const anameIdx = (window.__PNAME_IDX || {}).a || {};
+  const neededAnameChunks = new Set();
+  if (_acResolved >= 0) neededAnameChunks.add(_acResolved);
+  agtNetworkIds.forEach(id => {
+    const c = anameIdx[id];
+    if (c !== undefined) neededAnameChunks.add(c);
+  });
+  await Promise.all([...neededAnameChunks].map(c => loadAnameShard(c)));
   renderAgents(bizId, biz, _acResolved);
 }
 
