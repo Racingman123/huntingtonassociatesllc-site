@@ -928,12 +928,13 @@ function renderPeopleResults() {
     const contactParts = [];
     if (rec.ph) contactParts.push(`<a href="tel:${esc(rec.ph)}">${esc(rec.ph)}</a>`);
     if (rec.em) contactParts.push(`<a href="mailto:${esc(rec.em)}">${esc(rec.em)}</a>`);
-    return `<div class="people-card">
+    const cardClick = biz ? `onclick="openDetailFromPeople('${esc(r.bizId)}')" style="cursor:pointer"` : '';
+    return `<div class="people-card" ${cardClick}>
       <div class="people-card-name">${esc(rec.n || '—')}</div>
       <div><span class="people-card-role ${roleClass}">${roleLabel}</span>${rec.d ? `<span style="font-size:11px;color:var(--text3)">${esc(rec.d)}</span>` : ''}</div>
       ${contactParts.length ? `<div class="people-card-contact">${contactParts.join('')}</div>` : ''}
       ${addr ? `<div class="people-card-addr">📍 ${esc(addr)}</div>` : ''}
-      ${biz ? `<div class="people-card-biz" onclick="openDetailFromPeople('${esc(r.bizId)}')">&#128188; ${esc(bizName)}${biz.bt ? ` — ${esc(biz.bt)}` : ''}${biz.ci ? ` · ${esc(toTitleCase(biz.ci))}` : ''}</div>` : `<div class="people-card-addr">Business ID: ${esc(r.bizId)}</div>`}
+      ${biz ? `<div class="people-card-biz">&#128188; ${esc(bizName)}${biz.bt ? ` — ${esc(biz.bt)}` : ''}${biz.ci ? ` · ${esc(toTitleCase(biz.ci))}` : ''} <span style="font-size:11px;color:var(--text3)">→ click to open</span></div>` : `<div class="people-card-addr">Business ID: ${esc(r.bizId)}</div>`}
     </div>`;
   }).join('');
 
