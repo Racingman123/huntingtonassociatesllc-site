@@ -1330,13 +1330,12 @@ async function openDetail(id) {
   // CT SOS filing link — the portal uses encrypted tokens so we can't deep-link;
   // instead link to the search page and provide a copy button for the business name.
   const ctSosSearchUrl = 'https://service.ct.gov/business/s/onlinebusinesssearch?language=en_US';
-  const bizNameForCopy = (biz.n || '').replace(/'/g, "\\'");
   const ctSosHtml = `
     <div style="margin-top:16px;padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:8px">
       <div style="font-size:12px;color:var(--text2);margin-bottom:8px">View official filings, articles of incorporation &amp; annual reports on the CT Secretary of State portal:</div>
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <code style="flex:1;min-width:0;font-size:12px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:5px 8px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(biz.n||'')}</code>
-        <button onclick="navigator.clipboard.writeText('${bizNameForCopy}').then(()=>showToast('Business name copied — paste it in the CT SOS search'))"
+        <button id="ct-sos-copy-btn"
           style="padding:5px 10px;background:var(--bg2);border:1px solid var(--border2);border-radius:4px;font-size:12px;color:var(--text);cursor:pointer;white-space:nowrap">
           📋 Copy Name
         </button>
@@ -1353,6 +1352,9 @@ async function openDetail(id) {
   const ctSosDiv = document.createElement('div');
   ctSosDiv.id = 'ct-sos-block';
   ctSosDiv.innerHTML = ctSosHtml;
+  ctSosDiv.querySelector('#ct-sos-copy-btn').addEventListener('click', () => {
+    navigator.clipboard.writeText(biz.n || '').then(() => showToast('Business name copied — paste it in the CT SOS search'));
+  });
   $('d-grid').insertAdjacentElement('afterend', ctSosDiv);
 
   // Spinners
@@ -2019,18 +2021,20 @@ async function _mobileLoadAndOpen(bizId, pc, ac) {
   // CT SOS block
   const existingCtSos = document.getElementById('ct-sos-block');
   if (existingCtSos) existingCtSos.remove();
-  const bizNameForCopy = (biz.n || '').replace(/'/g, "\\'");
   const ctSosDiv = document.createElement('div');
   ctSosDiv.id = 'ct-sos-block';
   ctSosDiv.innerHTML = `<div style="margin-top:16px;padding:12px 16px;background:var(--bg3);border:1px solid var(--border);border-radius:8px">
     <div style="font-size:12px;color:var(--text2);margin-bottom:8px">View official filings on the CT Secretary of State portal:</div>
     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
       <code style="flex:1;min-width:0;font-size:12px;background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:5px 8px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(biz.n||'')}</code>
-      <button onclick="navigator.clipboard.writeText('${bizNameForCopy}').then(()=>showToast('Business name copied — paste it in the CT SOS search'))" style="padding:5px 10px;background:var(--bg2);border:1px solid var(--border2);border-radius:4px;font-size:12px;color:var(--text);cursor:pointer;white-space:nowrap">📋 Copy Name</button>
+      <button id="ct-sos-copy-btn" style="padding:5px 10px;background:var(--bg2);border:1px solid var(--border2);border-radius:4px;font-size:12px;color:var(--text);cursor:pointer;white-space:nowrap">📋 Copy Name</button>
       <a href="https://service.ct.gov/business/s/onlinebusinesssearch?language=en_US" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:6px;padding:5px 12px;background:var(--accent);color:#fff;border-radius:4px;font-size:12px;font-weight:500;text-decoration:none;white-space:nowrap">🏙️ Open CT SOS Search</a>
     </div>
     <div style="font-size:11px;color:var(--text3);margin-top:6px">Paste the copied name into the search box on the CT SOS page.</div>
   </div>`;
+  ctSosDiv.querySelector('#ct-sos-copy-btn').addEventListener('click', () => {
+    navigator.clipboard.writeText(biz.n || '').then(() => showToast('Business name copied — paste it in the CT SOS search'));
+  });
   $('d-grid').insertAdjacentElement('afterend', ctSosDiv);
 
   // Step 3: Load only the specific principal and agent chunks for this business
