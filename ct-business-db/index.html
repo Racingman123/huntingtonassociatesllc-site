@@ -3,6 +3,8 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https:; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https:">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <title>CT Business Intelligence Database</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -1320,12 +1322,13 @@ async function openDetail(id) {
 
   $('d-grid').innerHTML = fields.map(f => {
     let valHtml = `<span>${esc(f.val)}</span>`;
-    if (f.copy) valHtml += `<button class="copy-btn" onclick="copyText('${esc(f.val)}')" title="Copy">⍘</button>`;
+    if (f.copy) valHtml += `<button class="copy-btn" data-copy="${esc(f.val)}" title="Copy">⍘</button>`;
     if (f.map)  valHtml += `<a class="map-link" href="${mapsLink(f.map)}" target="_blank" rel="noopener" title="Open in Google Maps">📍 Map</a>`;
     let extra = '';
     if (f.velocity) extra = renderVelocityBar(f.velocity);
     return `<div><div class="detail-field-label">${esc(f.label)}</div><div class="detail-field-value">${valHtml}</div>${extra}</div>`;
   }).join('');
+  $('d-grid').onclick = e => { const btn = e.target.closest('.copy-btn'); if (btn) copyText(btn.dataset.copy); };
 
   // CT SOS filing link — the portal uses encrypted tokens so we can't deep-link;
   // instead link to the search page and provide a copy button for the business name.
@@ -2012,11 +2015,12 @@ async function _mobileLoadAndOpen(bizId, pc, ac) {
   ].filter(f => f.val);
   $('d-grid').innerHTML = fields.map(f => {
     let valHtml = `<span>${esc(f.val)}</span>`;
-    if (f.copy) valHtml += `<button class="copy-btn" onclick="copyText('${esc(f.val)}')" title="Copy">⍘</button>`;
+    if (f.copy) valHtml += `<button class="copy-btn" data-copy="${esc(f.val)}" title="Copy">⍘</button>`;
     if (f.map)  valHtml += `<a class="map-link" href="${mapsLink(f.map)}" target="_blank" rel="noopener" title="Open in Google Maps">📍 Map</a>`;
     let extra = f.velocity ? renderVelocityBar(f.velocity) : '';
     return `<div><div class="detail-field-label">${esc(f.label)}</div><div class="detail-field-value">${valHtml}</div>${extra}</div>`;
   }).join('');
+  $('d-grid').onclick = e => { const btn = e.target.closest('.copy-btn'); if (btn) copyText(btn.dataset.copy); };
 
   // CT SOS block
   const existingCtSos = document.getElementById('ct-sos-block');
