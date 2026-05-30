@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Staffing Coordinator | Huntington Associates</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;600;700&family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    :root {
+      --ink: #18212f;
+      --muted: #617084;
+      --line: #dce1e8;
+      --panel: #ffffff;
+      --soft: #f7f8fa;
+      --deep: #202936;
+      --green: #2e8b7d;
+      --amber: #ae5a2a;
+    }
+    body {
+      margin: 0;
+      background: var(--soft);
+      color: var(--ink);
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 14px clamp(18px, 4vw, 56px);
+      background: rgba(10, 10, 10, 0.76);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: #fff;
+    }
+    nav a {
+      color: inherit;
+      text-decoration: none;
+      font-family: "EB Garamond", serif;
+      font-size: 19px;
+      font-weight: 600;
+    }
+    .nav-link {
+      padding: 6px 12px;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.1);
+      font-family: Inter, sans-serif;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(260px, 0.85fr) minmax(360px, 1.15fr);
+      gap: 30px;
+      align-items: end;
+      padding: 54px clamp(18px, 4vw, 56px) 36px;
+      background:
+        linear-gradient(rgba(13, 22, 35, 0.76), rgba(13, 22, 35, 0.76)),
+        url("https://images.squarespace-cdn.com/content/v1/612115a6a245cb29c07a85a8/da3add36-ed68-4ec7-afeb-a64d71e54a51/shelton-ct-train-trestle-bridge-sunrise.jpg");
+      background-size: cover;
+      background-position: center;
+      color: #fff;
+    }
+    .eyebrow,
+    .label,
+    .shift-id {
+      margin: 0;
+      color: #7f8da0;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+    .hero .eyebrow { color: rgba(255,255,255,0.7); }
+    h1 {
+      max-width: 720px;
+      margin: 8px 0 16px;
+      font-size: clamp(36px, 6vw, 68px);
+      line-height: 0.96;
+      letter-spacing: 0;
+      font-family: "EB Garamond", serif;
+      font-weight: 700;
+    }
+    .hero p {
+      max-width: 650px;
+      margin: 0;
+      color: rgba(255,255,255,0.88);
+      font-size: 18px;
+      line-height: 1.55;
+    }
+    .snapshot {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+    .snapshot div {
+      min-height: 92px;
+      padding: 16px;
+      border: 1px solid rgba(255,255,255,0.18);
+      border-radius: 8px;
+      background: rgba(255,255,255,0.09);
+    }
+    .snapshot strong {
+      display: block;
+      margin-top: 6px;
+      font-size: 25px;
+    }
+    .shell {
+      display: grid;
+      grid-template-columns: minmax(300px, 390px) 1fr;
+      min-height: 720px;
+    }
+    .call-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      padding: 28px;
+      background: var(--deep);
+      color: #f8fafc;
+    }
+    .call-state {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+    .call-icon {
+      display: grid;
+      width: 52px;
+      height: 52px;
+      place-items: center;
+      border-radius: 8px;
+      background: var(--green);
+      font-weight: 900;
+    }
+    h2, h3 { margin: 0; letter-spacing: 0; }
+    .audio-rail {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      height: 86px;
+      padding: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+    }
+    .audio-rail span {
+      flex: 1;
+      min-width: 3px;
+      border-radius: 999px;
+      background: #58d5bc;
+    }
+    .transcript {
+      display: grid;
+      gap: 13px;
+      padding: 18px;
+      border-radius: 8px;
+      background: #111927;
+      font-size: 15px;
+      line-height: 1.55;
+    }
+    .transcript p,
+    .shift-card p,
+    .config-grid p,
+    footer { margin: 0; }
+    .view-only {
+      margin-top: auto;
+      padding: 14px;
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 8px;
+      color: rgba(255,255,255,0.82);
+      background: rgba(255,255,255,0.07);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+    .workspace { padding: 24px clamp(18px, 3vw, 38px) 36px; }
+    .scenario-tabs {
+      display: inline-flex;
+      gap: 4px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+    .scenario-tabs span {
+      min-width: 108px;
+      padding: 10px 14px;
+      border-radius: 6px;
+      text-align: center;
+      color: #526174;
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .scenario-tabs .active {
+      background: var(--green);
+      color: #fff;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(280px, 0.85fr) minmax(360px, 1.4fr);
+      gap: 18px;
+      margin-top: 18px;
+    }
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      padding: 20px;
+    }
+    .wide { grid-column: 1 / -1; }
+    .panel-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .panel-mark {
+      display: grid;
+      width: 28px;
+      height: 28px;
+      place-items: center;
+      border-radius: 7px;
+      background: #edf7f4;
+      color: var(--green);
+      font-weight: 900;
+    }
+    dl {
+      display: grid;
+      gap: 12px;
+      margin: 0 0 18px;
+    }
+    dt {
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
+    dd {
+      margin: 2px 0 0;
+      font-weight: 800;
+    }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .chips span {
+      padding: 7px 9px;
+      border-radius: 999px;
+      background: #edf7f4;
+      color: #1d675c;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .shift-list {
+      display: grid;
+      gap: 12px;
+    }
+    .shift-card {
+      display: grid;
+      gap: 11px;
+      padding: 15px;
+      border: 1px solid #e2e7ee;
+      border-radius: 8px;
+      background: #fbfcfe;
+    }
+    .shift-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .shift-meta span,
+    .status-note {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: #39475a;
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .requirements {
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .status-note {
+      width: fit-content;
+      padding: 8px 10px;
+      border-radius: 7px;
+      background: #edf7f4;
+      color: #1d675c;
+    }
+    .tool-list {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(150px, 1fr));
+      gap: 12px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .tool-list li {
+      padding: 14px;
+      border: 1px solid #e2e7ee;
+      border-radius: 8px;
+      background: #fbfcfe;
+    }
+    .tool-list p,
+    .tool-list span {
+      display: block;
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+    .tool-list span {
+      color: #1d675c;
+      font-weight: 800;
+    }
+    .config-band {
+      display: grid;
+      grid-template-columns: minmax(260px, 0.8fr) 1.4fr;
+      gap: 24px;
+      padding: 32px clamp(18px, 4vw, 56px);
+      border-top: 1px solid var(--line);
+      background: var(--panel);
+    }
+    .config-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .config-grid article {
+      display: grid;
+      gap: 9px;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+    .config-grid .panel-mark {
+      background: #fff3ea;
+      color: var(--amber);
+    }
+    footer {
+      padding: 16px clamp(18px, 4vw, 56px);
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 800;
+      background: #f8fafc;
+    }
+    @media (max-width: 1080px) {
+      .hero,
+      .shell,
+      .config-band,
+      .grid,
+      .config-grid,
+      .tool-list {
+        grid-template-columns: 1fr;
+      }
+      .snapshot { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+    @media (max-width: 720px) {
+      nav { align-items: flex-start; flex-direction: column; }
+      .hero,
+      .call-panel,
+      .workspace { padding: 18px; }
+      .snapshot,
+      .scenario-tabs { grid-template-columns: 1fr; }
+      .snapshot { display: grid; }
+      .scenario-tabs { display: grid; width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <a href="../../">Huntington Associates</a>
+    <a class="nav-link" href="../../#projects">Back to projects</a>
+  </nav>
+
+  <header class="hero">
+    <div>
+      <p class="eyebrow">Project dashboard</p>
+      <h1>AI Staffing Coordinator</h1>
+      <p>
+        A view-only operating dashboard for a voice secretary that answers staffing calls,
+        verifies workers, matches shifts, and prepares clean handoffs for coordinators.
+      </p>
+    </div>
+    <div class="snapshot" aria-label="Project metrics">
+      <div>
+        <p class="eyebrow">Call type</p>
+        <strong>Inbound</strong>
+      </div>
+      <div>
+        <p class="eyebrow">Match status</p>
+        <strong>Eligible</strong>
+      </div>
+      <div>
+        <p class="eyebrow">Mode</p>
+        <strong>View only</strong>
+      </div>
+    </div>
+  </header>
+
+  <main class="shell">
+    <aside class="call-panel" aria-label="Call preview">
+      <div class="call-state">
+        <div class="call-icon">AI</div>
+        <div>
+          <p class="label">Inbound call</p>
+          <h2>Maya Thompson</h2>
+        </div>
+      </div>
+
+      <div class="audio-rail" aria-label="Voice activity preview">
+        <span style="height:22px"></span><span style="height:42px"></span><span style="height:58px"></span><span style="height:31px"></span>
+        <span style="height:68px"></span><span style="height:48px"></span><span style="height:25px"></span><span style="height:54px"></span>
+        <span style="height:38px"></span><span style="height:72px"></span><span style="height:44px"></span><span style="height:29px"></span>
+        <span style="height:61px"></span><span style="height:36px"></span><span style="height:52px"></span><span style="height:24px"></span>
+      </div>
+
+      <div class="transcript">
+        <p><strong>Assistant:</strong> I found one forklift shift tonight at Northline Logistics. Before I book it, please confirm you can arrive by 6:45 PM with your steel-toe boots.</p>
+        <p><strong>Maya:</strong> Yes, I can make that shift.</p>
+        <p><strong>Assistant:</strong> Confirmed. I will prepare SH-1842 and text you the details after coordinator review.</p>
+      </div>
+
+      <div class="view-only">
+        View-only concept page. This public version does not place calls, book shifts,
+        send SMS messages, or connect to private candidate systems.
+      </div>
+    </aside>
+
+    <section class="workspace" aria-label="Dashboard preview">
+      <div class="scenario-tabs" aria-label="Scenario preview">
+        <span class="active">Candidate</span>
+        <span>Client intake</span>
+        <span>Handoff</span>
+      </div>
+
+      <div class="grid">
+        <section class="panel">
+          <div class="panel-title">
+            <div class="panel-mark">W</div>
+            <h2>Worker profile</h2>
+          </div>
+          <dl>
+            <div>
+              <dt>Status</dt>
+              <dd>Verified worker</dd>
+            </div>
+            <div>
+              <dt>Reliability</dt>
+              <dd>96% show rate</dd>
+            </div>
+            <div>
+              <dt>Travel radius</dt>
+              <dd>18 miles</dd>
+            </div>
+          </dl>
+          <div class="chips">
+            <span>Warehouse</span>
+            <span>Forklift</span>
+            <span>Picker/Packer</span>
+            <span>Night shift</span>
+            <span>OSHA 10</span>
+            <span>Forklift valid until Aug 2026</span>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-title">
+            <div class="panel-mark">S</div>
+            <h2>Matched shifts</h2>
+          </div>
+          <div class="shift-list">
+            <article class="shift-card">
+              <div>
+                <p class="shift-id">SH-1842</p>
+                <h3>Forklift Operator</h3>
+                <p>Northline Logistics</p>
+              </div>
+              <div class="shift-meta">
+                <span>Tonight, 7:00 PM</span>
+                <span>$24/hr</span>
+                <span>College Park, GA</span>
+              </div>
+              <p class="requirements">Forklift cert / Steel-toe boots / 2+ prior shifts</p>
+              <span class="status-note">Ready for coordinator review</span>
+            </article>
+            <article class="shift-card">
+              <div>
+                <p class="shift-id">SH-1881</p>
+                <h3>Picker/Packer</h3>
+                <p>BrightPath Fulfillment</p>
+              </div>
+              <div class="shift-meta">
+                <span>Tomorrow, 6:30 AM</span>
+                <span>$19/hr</span>
+                <span>Smyrna, GA</span>
+              </div>
+              <p class="requirements">Warehouse experience / Lift 35 lbs</p>
+              <span class="status-note">Open match</span>
+            </article>
+          </div>
+        </section>
+
+        <section class="panel wide">
+          <div class="panel-title">
+            <div class="panel-mark">T</div>
+            <h2>Tool trace preview</h2>
+          </div>
+          <ol class="tool-list">
+            <li>
+              <h3>lookup_candidate</h3>
+              <p>Phone match for worker record</p>
+              <span>Verified active profile.</span>
+            </li>
+            <li>
+              <h3>find_open_shifts</h3>
+              <p>Skill, radius, and availability query</p>
+              <span>High-confidence match returned.</span>
+            </li>
+            <li>
+              <h3>policy_check</h3>
+              <p>Certification and overlap validation</p>
+              <span>Eligible to proceed.</span>
+            </li>
+            <li>
+              <h3>prepare_handoff</h3>
+              <p>Coordinator summary generated</p>
+              <span>Review packet ready.</span>
+            </li>
+            <li>
+              <h3>send_confirmation</h3>
+              <p>Queued message preview</p>
+              <span>Disabled on public page.</span>
+            </li>
+          </ol>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <section class="config-band" aria-label="Template capabilities">
+    <div>
+      <p class="eyebrow">Reusable company template</p>
+      <h2>Company profile, voice behavior, policies, and tools are configurable.</h2>
+    </div>
+    <div class="config-grid">
+      <article>
+        <div class="panel-mark">E</div>
+        <h3>Escalation rules</h3>
+        <p>Payroll, injury reports, disputes, missing identity matches, and client complaints route to humans.</p>
+      </article>
+      <article>
+        <div class="panel-mark">A</div>
+        <h3>ATS and scheduling tools</h3>
+        <p>Connect calendars, worker rosters, SMS, CRM, and staffing-system APIs behind typed tool calls.</p>
+      </article>
+      <article>
+        <div class="panel-mark">V</div>
+        <h3>Realtime voice</h3>
+        <p>Designed for a low-latency voice agent that can hold natural calls while using approved business tools.</p>
+      </article>
+    </div>
+  </section>
+
+  <footer>
+    &copy; 2026 Huntington Associates LLC. AI Staffing Coordinator project concept.
+  </footer>
+</body>
+</html>
