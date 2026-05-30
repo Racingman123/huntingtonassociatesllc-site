@@ -4,10 +4,13 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Huntington Associates LLC</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; }
 
-body { margin:0; font-family: Georgia, 'Times New Roman', Times, serif; background:#ffffff; color:#1a1a1a; }
+body { margin:0; font-family:'EB Garamond', serif; background:#ffffff; color:#1a1a1a; }
 
 :root{
   --break-h: clamp(20px, 6vw, 64px);
@@ -232,6 +235,48 @@ nav {
   content: "→";
 }
 
+.project-category-heading {
+  color: #fff;
+  font-size: 22px;
+  line-height: 1.5;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  margin: 48px 0 8px;
+}
+
+.overlay .project-category-desc {
+  color: #fff;
+}
+
+.project-category-section {
+  --rail-p: 0;
+  --rail-opacity: 0;
+  --rail-travel: 140px;
+  position: relative;
+  margin-top: 48px;
+  padding: 0 0 6px;
+}
+
+.project-category-section::after {
+  content: "";
+  position: absolute;
+  top: 4px;
+  right: -28px;
+  width: 4px;
+  height: 216px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.9);
+  box-shadow: 0 0 18px rgba(255,255,255,0.35);
+  opacity: var(--rail-opacity);
+  transform: translateY(calc(var(--rail-p) * var(--rail-travel)));
+  transition: opacity 0.08s linear, transform 0.08s linear;
+}
+
+.project-category-section .project-category-heading {
+  margin-top: 0;
+}
+
 /* ─── FOOTER ──────────────────────────────────────────────────── */
 footer {
   text-align: center; padding: 20px;
@@ -295,7 +340,7 @@ footer {
   <div class="about-inner">
     <h2>What we offer</h2>
     <p>
-      We partner with businesses to unlock growth, streamline operations, grow revenue,
+      We partner with businesses to unlock possibilities, streamline operations, grow revenue,
       and increase bottom lines. By viewing industries and operations from a
       first-principles perspective, we can use innovation to transcend businesses
       in the modern era.
@@ -320,47 +365,57 @@ footer {
     style="background-image:url('https://images.squarespace-cdn.com/content/v1/612115a6a245cb29c07a85a8/da3add36-ed68-4ec7-afeb-a64d71e54a51/shelton-ct-train-trestle-bridge-sunrise.jpg');"></div>
   <div class="about-inner">
     <h2>Projects</h2>
-    <p>Tools and resources we've built for the Connecticut business community.</p>
-    <div class="projects-grid">
+    <div class="project-category-section">
+      <h3 class="project-category-heading">Public Projects</h3>
+      <p class="project-category-desc">Public databases for anyone to use. Created to streamline knowledge work.</p>
+      <div class="projects-grid">
 
-      <a class="project-card" href="https://ctbiz.huntingtonassociatesllc.com" target="_blank" rel="noopener noreferrer">
-        <div class="project-card-icon">🏢</div>
-        <h3 class="project-card-title">CT Business Database</h3>
-        <p class="project-card-desc">A collective database of all businesses, owners, and agents currently registered or previously registered with the state.</p>
-        <span class="project-card-cta">Open database →</span>
-      </a>
+        <a class="project-card" href="https://ctbiz.huntingtonassociatesllc.com" target="_blank" rel="noopener noreferrer">
+          <div class="project-card-icon">🏢</div>
+          <h3 class="project-card-title">CT Business Database</h3>
+          <p class="project-card-desc">A collective database of all businesses, owners, and agents currently registered or previously registered with the state.</p>
+          <span class="project-card-cta">Open database →</span>
+        </a>
 
-      <a class="project-card" href="https://foreclosures.huntingtonassociatesllc.com" target="_blank" rel="noopener noreferrer">
-        <div class="project-card-icon">🏛️</div>
-        <h3 class="project-card-title">CT Foreclosure Tracker</h3>
-        <p class="project-card-desc">Live foreclosure listings for every town in Connecticut. Along with detailed parcel data and valuations.</p>
-        <span class="project-card-cta">Open tracker →</span>
-      </a>
-
-
-      <a class="project-card" href="projects/ai-staffing-coordinator/">
-        <div class="project-card-icon">☎︎</div>
-        <h3 class="project-card-title">Voice-Enabled AI Scheduling Assistant</h3>
-        <p class="project-card-desc">
-          An autonomous assistant that communicates with clients and customers through
-          voice calls and texts to schedule appointments, shifts, logistics, and solve
-          scheduling problems.
-        </p>
-        <span class="project-card-cta">View dashboard</span>
-      </a>
-
-      <a class="project-card" href="projects/raffle-commerce-template/">
-        <div class="project-card-icon">🎟</div>
-        <h3 class="project-card-title">Giveaway Platform</h3>
-        <p class="project-card-desc">
-          A full stack website, shop, and payment platform for brands to run
-          raffles/giveaways. Our foundation can help you leverage your brand
-          and run the giveaway you always wanted to.
-        </p>
-        <span class="project-card-cta">View template</span>
-      </a>
+        <a class="project-card" href="https://foreclosures.huntingtonassociatesllc.com" target="_blank" rel="noopener noreferrer">
+          <div class="project-card-icon">🏛️</div>
+          <h3 class="project-card-title">CT Foreclosure Tracker</h3>
+          <p class="project-card-desc">Live foreclosure listings for every town in Connecticut. Along with detailed parcel data and valuations.</p>
+          <span class="project-card-cta">Open tracker →</span>
+        </a>
 
 
+      </div>
+    </div>
+    <div class="project-category-section">
+      <h3 class="project-category-heading">Private Projects</h3>
+      <p class="project-category-desc">Projects completed and managed for clients. Click to learn more about each one and contact us to have a custom project built for your business.</p>
+      <div class="projects-grid">
+
+        <a class="project-card" href="projects/ai-staffing-coordinator/">
+          <div class="project-card-icon">☎︎</div>
+          <h3 class="project-card-title">Voice-Enabled AI Scheduling Assistant</h3>
+          <p class="project-card-desc">
+            An autonomous assistant that communicates with clients and customers through
+            voice calls and texts to schedule appointments, shifts, logistics, and solve
+            scheduling problems.
+          </p>
+          <span class="project-card-cta">View dashboard</span>
+        </a>
+
+        <a class="project-card" href="projects/raffle-commerce-template/">
+          <div class="project-card-icon">🎟</div>
+          <h3 class="project-card-title">Giveaway Platform</h3>
+          <p class="project-card-desc">
+            A full stack website, shop, and payment platform for brands to run
+            raffles/giveaways. Our foundation can help you leverage your brand
+            and run the giveaway you always wanted to.
+          </p>
+          <span class="project-card-cta">View template</span>
+        </a>
+
+
+      </div>
     </div>
   </div>
 </section>
@@ -391,6 +446,7 @@ footer {
     document.getElementById('projects'),
     document.getElementById('contactOverlay')
   ];
+  const projectCategorySections = document.querySelectorAll('.project-category-section');
   const clamp = (n,min,max) => Math.max(min, Math.min(max, n));
 
   function update(){
@@ -409,6 +465,16 @@ footer {
       if (sec.id === 'contactOverlay' && scrollBottom >= docHeight - 4) p = 1;
       sec.style.opacity = p;
       sec.style.transform = `translateY(${(1 - p) * 18}px)`;
+    });
+
+    projectCategorySections.forEach(sec => {
+      const r = sec.getBoundingClientRect();
+      const p = clamp((vh - r.top) / (vh + r.height), 0, 1);
+      const fadeIn = clamp((vh * 0.9 - r.top) / (vh * 0.25), 0, 1);
+      const fadeOut = clamp((r.bottom - vh * 0.1) / (vh * 0.25), 0, 1);
+      sec.style.setProperty('--rail-p', p);
+      sec.style.setProperty('--rail-opacity', fadeIn * fadeOut);
+      sec.style.setProperty('--rail-travel', `${Math.max(0, r.height - 226)}px`);
     });
 
     updateActiveNav();
