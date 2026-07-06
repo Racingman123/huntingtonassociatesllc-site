@@ -315,9 +315,25 @@ footer {
     font-size: 14px;
   }
 }
+
+/* ─── PAGE FADE (cross-page transition) ───────────────────────── */
+.page-fade {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: #171112;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.32s ease;
+}
+.page-fade.is-cover { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .page-fade { transition: none; } }
 </style>
 </head>
 <body>
+
+<div class="page-fade" id="pageFade" aria-hidden="true"></div>
+<script>document.getElementById("pageFade").classList.add("is-cover");</script>
 
 <!-- NAVIGATION -->
 <nav id="mainNav">
@@ -542,6 +558,31 @@ footer {
   update();
   window.addEventListener('scroll', update, { passive: true });
   window.addEventListener('resize', update);
+})();
+</script>
+<script>
+/* Cross-page fade: dip to dark on internal navigation, fade in on arrival */
+(function () {
+  var fade = document.getElementById("pageFade");
+  requestAnimationFrame(function () {
+    requestAnimationFrame(function () { fade.classList.remove("is-cover"); });
+  });
+  window.addEventListener("pageshow", function (e) {
+    if (e.persisted) fade.classList.remove("is-cover");
+  });
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest ? e.target.closest("a") : null;
+    if (!a || e.defaultPrevented || a.target === "_blank" ||
+        e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    var href = a.getAttribute("href") || "";
+    if (!href || href.charAt(0) === "#") return;
+    if (a.protocol !== "http:" && a.protocol !== "https:") return;
+    if (a.origin !== location.origin) return;
+    if (a.pathname === location.pathname && a.hash) return;
+    e.preventDefault();
+    fade.classList.add("is-cover");
+    setTimeout(function () { location.href = href; }, 300);
+  });
 })();
 </script>
 </body>

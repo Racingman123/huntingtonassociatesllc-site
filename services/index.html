@@ -17,12 +17,17 @@
   --muted: rgba(255,255,255,0.62);
   --faint: rgba(255,255,255,0.34);
 
-  /* Great Books of the Western World binding */
-  --buckram: #e7dcc0;
-  --buckram-dark: #d9cba6;
-  --buckram-deep: #c9b98f;
-  --crimson: #7a1f1c;
-  --crimson-deep: #5c1513;
+  /* Great Books of the Western World binding (1952 Britannica set):
+     tan buckram, per-volume color panel, gold crest, white number band */
+  --buckram-light: #e3a55c;
+  --buckram: #d69145;
+  --buckram-dark: #c07c31;
+  --buckram-deep: #a96a28;
+  --rule-gold: #ecd7a4;
+  --panel-ink: #f7ecd4;
+  --crest-gold: #8a6526;
+  --bronze: #6f5722;
+  /* kept for accents elsewhere on the page */
   --gold: #c9a227;
   --gold-bright: #e3c258;
 
@@ -45,6 +50,20 @@ body {
 }
 
 a { color: var(--ink); }
+
+/* Blurred homepage hero photo as the page backdrop, tinted toward the
+   site's dark theme so books and text keep their contrast */
+.backdrop {
+  position: fixed;
+  inset: -48px;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(rgba(32, 24, 25, 0.74), rgba(32, 24, 25, 0.74)),
+    url('https://shelton.qscendcms.com/UploadFiles/OpeningPhotos/Original/84d61ea6-dbde-4dec-a85a-8fffcba0bf51.jpg') center / cover no-repeat;
+  filter: blur(26px) saturate(0.9);
+  transform: scale(1.06);
+}
 
 button {
   margin: 0;
@@ -166,81 +185,109 @@ button {
   backface-visibility: hidden;
 }
 
-/* Spine — the face you read. Great Books binding, lying flat. */
+/* Spine — the face you read. Great Books binding, lying flat.
+   Left→right maps to top→bottom of the standing book:
+   grooves | color panel (title) | crest | number band | imprint | grooves */
 .face-spine {
   display: flex;
   align-items: center;
-  gap: clamp(10px, 2vw, 18px);
-  padding: 0 clamp(12px, 2.4vw, 22px);
+  gap: clamp(8px, 1.6vw, 16px);
+  padding: 0 clamp(10px, 2vw, 18px);
   border-radius: 4px;
   transform: translateZ(calc(var(--spine-d) / 2));
   background:
-    repeating-linear-gradient(90deg, rgba(120,96,52,0.05) 0 1px, transparent 1px 3px),
-    repeating-linear-gradient(0deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 2px),
-    linear-gradient(180deg, #efe5cb 0%, var(--buckram) 38%, var(--buckram-dark) 82%, var(--buckram-deep) 100%);
+    repeating-linear-gradient(90deg, rgba(96,60,20,0.06) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.06) 0 1px, transparent 1px 2px),
+    linear-gradient(180deg, var(--buckram-light) 0%, var(--buckram) 38%, var(--buckram-dark) 82%, var(--buckram-deep) 100%);
   box-shadow:
-    inset 0 2px 3px rgba(255,255,255,0.55),
-    inset 0 -3px 6px rgba(96,74,38,0.35),
-    inset 6px 0 8px -5px rgba(96,74,38,0.5),
-    inset -6px 0 8px -5px rgba(96,74,38,0.5);
+    inset 0 2px 3px rgba(255,235,200,0.5),
+    inset 0 -3px 6px rgba(90,52,14,0.4),
+    inset 6px 0 8px -5px rgba(90,52,14,0.5),
+    inset -6px 0 8px -5px rgba(90,52,14,0.5);
 }
 
+/* triple grooves with gilt lines, like the ridges at head and tail */
 .gb-rules {
   flex: none;
   align-self: stretch;
-  width: 7px;
-  margin: 12px 0;
-  border-left: 2px solid var(--gold);
-  border-right: 2px solid var(--gold);
-  opacity: 0.9;
-}
-
-.gb-num {
-  flex: none;
-  color: var(--gold);
-  font-weight: 700;
-  font-size: clamp(15px, 2.1vh, 20px);
-  letter-spacing: 0.12em;
-  text-shadow: 0 1px 0 rgba(255,255,255,0.35), 0 -1px 1px rgba(96,74,38,0.5);
+  width: 11px;
+  margin: 8px 0;
+  background: linear-gradient(90deg,
+    var(--rule-gold) 0 2px, transparent 2px 4.5px,
+    var(--rule-gold) 4.5px 6.5px, transparent 6.5px 9px,
+    var(--rule-gold) 9px 11px);
+  opacity: 0.75;
 }
 
 .gb-panel {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-width: 0;
+  max-width: 46%;
   display: flex;
   align-items: center;
   justify-content: center;
   align-self: stretch;
-  margin: clamp(8px, 1.4vh, 13px) 0;
-  padding: 4px 12px;
-  border: 2px solid var(--gold);
-  outline: 1px solid rgba(201,162,39,0.55);
+  margin: clamp(7px, 1.2vh, 11px) 0;
+  padding: 4px clamp(10px, 1.8vw, 18px);
+  border: 1px solid var(--rule-gold);
+  outline: 1px solid rgba(236,215,164,0.4);
   outline-offset: 2px;
-  border-radius: 2px;
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.14), transparent 40%, rgba(0,0,0,0.22)),
-    linear-gradient(180deg, var(--crimson), var(--crimson-deep));
-  box-shadow: inset 0 0 12px rgba(0,0,0,0.35);
+    linear-gradient(180deg, rgba(255,255,255,0.16), transparent 45%, rgba(0,0,0,0.18)),
+    var(--vol-tint, #33322d);
+  box-shadow: inset 0 0 10px rgba(0,0,0,0.25);
 }
 
 .gb-panel span {
   overflow: hidden;
-  color: var(--gold-bright);
-  font-weight: 700;
-  font-size: clamp(11px, 2vh, 17px);
-  letter-spacing: 0.18em;
+  color: var(--panel-ink);
+  font-weight: 600;
+  font-size: clamp(10px, 1.9vh, 15px);
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   text-align: center;
   white-space: nowrap;
-  text-shadow: 0 1px 1px rgba(0,0,0,0.6);
+  text-shadow: 0 1px 1px rgba(0,0,0,0.45);
+}
+
+.gb-mid {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+.gb-crest {
+  height: clamp(30px, 5.2vh, 48px);
+  color: var(--crest-gold);
+  opacity: 0.9;
+  filter: drop-shadow(0 1px 0 rgba(255,235,200,0.35));
+}
+
+.gb-numband {
+  flex: none;
+  display: grid;
+  place-items: center;
+  align-self: center;
+  min-width: clamp(30px, 3.4vw, 44px);
+  padding: clamp(3px, 0.7vh, 6px) 8px;
+  border: 1px solid var(--rule-gold);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.14), transparent 45%, rgba(0,0,0,0.18)),
+    var(--vol-tint, #33322d);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: clamp(13px, 1.9vh, 17px);
+  text-shadow: 0 1px 1px rgba(0,0,0,0.45);
 }
 
 .gb-house {
   flex: none;
-  color: #8a2f26;
+  color: var(--bronze);
   font-weight: 700;
   font-size: clamp(8px, 1.2vh, 10px);
-  letter-spacing: 0.22em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
   text-align: center;
   line-height: 1.5;
@@ -256,9 +303,9 @@ button {
   margin-top: calc(var(--spine-d) / -2);
   border-radius: 4px;
   background:
-    repeating-linear-gradient(90deg, rgba(120,96,52,0.05) 0 1px, transparent 1px 3px),
-    linear-gradient(160deg, #efe5cb, var(--buckram) 55%, var(--buckram-dark));
-  box-shadow: inset 0 0 0 2px rgba(201,162,39,0.0), inset 0 0 40px rgba(96,74,38,0.22);
+    repeating-linear-gradient(90deg, rgba(96,60,20,0.06) 0 1px, transparent 1px 3px),
+    linear-gradient(160deg, var(--buckram-light), var(--buckram) 55%, var(--buckram-dark));
+  box-shadow: inset 0 0 40px rgba(90,52,14,0.25);
 }
 
 .face-cover-top    { transform: rotateX(90deg)  translateZ(calc(var(--spine-t) / 2)); }
@@ -267,22 +314,26 @@ button {
 .cover-frame {
   position: absolute;
   inset: 12px;
-  border: 2px solid var(--gold);
+  border: 2px solid var(--rule-gold);
   border-radius: 2px;
   opacity: 0.85;
   display: grid;
   place-items: center;
+  align-content: center;
+  gap: 10px;
 }
 
 .cover-frame::before {
   content: "";
   position: absolute;
   inset: 4px;
-  border: 1px solid rgba(201,162,39,0.6);
+  border: 1px solid rgba(236,215,164,0.55);
 }
 
+.cover-frame .gb-crest { height: 52px; }
+
 .cover-mark {
-  color: var(--crimson);
+  color: var(--bronze);
   font-weight: 700;
   font-size: 12px;
   letter-spacing: 0.28em;
@@ -416,7 +467,8 @@ html.no-js .vol-copy {
   display: grid;
   place-items: center;
   padding: 110px 22px 70px;
-  background: var(--bg);
+  /* transparent: the fixed blurred-photo backdrop is the background */
+  background: transparent;
   text-align: center;
 }
 
@@ -468,7 +520,7 @@ footer {
   position: relative;
   z-index: 5;
   padding: 26px 22px 34px;
-  background: var(--bg);
+  background: transparent;
   color: var(--faint);
   text-align: center;
   font-size: 14px;
@@ -480,12 +532,36 @@ footer {
   inset: 0;
   z-index: 80;
   display: none;
-  background: var(--bg);
+  /* light scrim only — the blurred photo backdrop stays the background */
+  background: rgba(32, 24, 25, 0.45);
   overflow-y: auto;
+  overflow-x: hidden;
+  opacity: 1;
+  transition: opacity 0.35s ease 0.1s;
 }
 
-html.overlay-open { overflow: hidden; }
+html.overlay-open,
+html.overlay-closing { overflow: hidden; }
 html.overlay-open .overlay { display: block; }
+
+/* closing: keep the overlay painted while it fades out over the restored
+   shelf, so the book reads as settling back into place */
+html.overlay-closing .overlay {
+  display: block;
+  opacity: 0;
+  pointer-events: none;
+}
+/* display:none for the stage — the render loop sets inline
+   visibility:visible on each book, which would override a parent's
+   visibility:hidden */
+html.overlay-open .stage,
+html.overlay-open .stage-shadow { display: none; }
+
+html.overlay-open .caption,
+html.overlay-open .site-nav,
+html.overlay-open .indicator,
+html.overlay-open .finale,
+html.overlay-open footer { visibility: hidden; }
 
 .overlay-grid {
   min-height: 100%;
@@ -540,11 +616,15 @@ html.overlay-open .overlay { display: block; }
   width: var(--cov-w);
   height: var(--cov-h);
   transform-style: preserve-3d;
-  transform: rotateY(94deg);
-  transition: transform 1s cubic-bezier(0.22, 0.78, 0.24, 1);
+  /* start lying flat, spine toward the viewer — matching the shelf — then
+     stand upright while the cover turns to face you */
+  transform: rotateZ(-90deg) rotateY(90deg);
+  transition: transform 1.05s cubic-bezier(0.22, 0.75, 0.2, 1);
 }
 
-.overlay.is-open .turn-book { transform: rotateY(-8deg) rotateX(1deg); }
+.overlay:not(.is-open) .turn-book { transition-duration: 0.45s; }
+
+.overlay.is-open .turn-book { transform: rotateZ(0deg) rotateY(-8deg) rotateX(1deg); }
 
 .turn-book .tface {
   position: absolute;
@@ -557,23 +637,22 @@ html.overlay-open .overlay { display: block; }
   border-radius: 3px 8px 8px 3px;
   padding: 26px;
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto auto 1fr auto;
   justify-items: center;
   background:
-    repeating-linear-gradient(0deg, rgba(120,96,52,0.05) 0 1px, transparent 1px 3px),
-    linear-gradient(150deg, #efe5cb, var(--buckram) 55%, var(--buckram-dark));
+    repeating-linear-gradient(0deg, rgba(96,60,20,0.06) 0 1px, transparent 1px 3px),
+    linear-gradient(150deg, var(--buckram-light), var(--buckram) 55%, var(--buckram-dark));
   box-shadow:
-    inset 0 0 0 2px rgba(201,162,39,0.0),
-    inset 3px 0 6px -3px rgba(255,255,255,0.6),
-    inset -4px 0 10px -6px rgba(96,74,38,0.55),
-    inset 0 0 46px rgba(96,74,38,0.2);
+    inset 3px 0 6px -3px rgba(255,235,200,0.55),
+    inset -4px 0 10px -6px rgba(90,52,14,0.55),
+    inset 0 0 46px rgba(90,52,14,0.22);
 }
 
 .tface-front::before {
   content: "";
   position: absolute;
   inset: 14px;
-  border: 2px solid var(--gold);
+  border: 2px solid var(--rule-gold);
   border-radius: 2px;
   opacity: 0.9;
   pointer-events: none;
@@ -583,13 +662,13 @@ html.overlay-open .overlay { display: block; }
   content: "";
   position: absolute;
   inset: 19px;
-  border: 1px solid rgba(201,162,39,0.55);
+  border: 1px solid rgba(236,215,164,0.55);
   pointer-events: none;
 }
 
 .tcov-house {
   margin-top: 26px;
-  color: var(--crimson);
+  color: var(--bronze);
   font-weight: 700;
   font-size: 11px;
   letter-spacing: 0.3em;
@@ -598,36 +677,45 @@ html.overlay-open .overlay { display: block; }
 
 .tcov-panel {
   align-self: center;
-  margin: 0 26px;
-  padding: 18px 20px;
-  border: 2px solid var(--gold);
-  outline: 1px solid rgba(201,162,39,0.55);
+  margin: 26px 26px 0;
+  padding: 16px 20px;
+  border: 1px solid var(--rule-gold);
+  outline: 1px solid rgba(236,215,164,0.4);
   outline-offset: 2px;
   background:
-    linear-gradient(180deg, rgba(255,255,255,0.12), transparent 40%, rgba(0,0,0,0.22)),
-    linear-gradient(180deg, var(--crimson), var(--crimson-deep));
-  box-shadow: inset 0 0 14px rgba(0,0,0,0.35);
+    linear-gradient(180deg, rgba(255,255,255,0.16), transparent 45%, rgba(0,0,0,0.18)),
+    var(--vol-tint, #33322d);
+  box-shadow: inset 0 0 12px rgba(0,0,0,0.25);
 }
 
 .tcov-panel span {
   display: block;
-  color: var(--gold-bright);
-  font-weight: 700;
+  color: var(--panel-ink);
+  font-weight: 600;
   font-size: 17px;
   letter-spacing: 0.2em;
   line-height: 1.5;
   text-align: center;
   text-transform: uppercase;
-  text-shadow: 0 1px 1px rgba(0,0,0,0.6);
+  text-shadow: 0 1px 1px rgba(0,0,0,0.45);
 }
+
+.tcov-crest {
+  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tcov-crest .gb-crest { height: 74px; }
 
 .tcov-num {
   margin-bottom: 26px;
-  color: var(--gold);
+  color: var(--bronze);
   font-weight: 700;
-  font-size: 15px;
-  letter-spacing: 0.18em;
-  text-shadow: 0 1px 0 rgba(255,255,255,0.3);
+  font-size: 14px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
 }
 
 .tface-back {
@@ -642,32 +730,52 @@ html.overlay-open .overlay { display: block; }
   margin-left: calc(var(--cov-d) / -2);
   transform: rotateY(-90deg) translateZ(calc(var(--cov-w) / 2));
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto 1fr auto auto auto;
   justify-items: center;
-  padding: 14px 6px;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 6px;
   background:
-    repeating-linear-gradient(0deg, rgba(120,96,52,0.06) 0 1px, transparent 1px 3px),
-    linear-gradient(90deg, #efe5cb, var(--buckram) 55%, var(--buckram-dark));
+    repeating-linear-gradient(0deg, rgba(96,60,20,0.07) 0 1px, transparent 1px 3px),
+    linear-gradient(90deg, var(--buckram-light), var(--buckram) 55%, var(--buckram-dark));
 }
 
 .tface-spine .ts-rules {
-  width: 60%;
-  height: 7px;
-  border-top: 2px solid var(--gold);
-  border-bottom: 2px solid var(--gold);
+  width: 62%;
+  height: 11px;
+  background: linear-gradient(180deg,
+    var(--rule-gold) 0 2px, transparent 2px 4.5px,
+    var(--rule-gold) 4.5px 6.5px, transparent 6.5px 9px,
+    var(--rule-gold) 9px 11px);
+  opacity: 0.75;
 }
 
 .tface-spine .ts-title {
   align-self: center;
   writing-mode: vertical-rl;
-  padding: 14px 4px;
-  border: 2px solid var(--gold);
-  background: linear-gradient(180deg, var(--crimson), var(--crimson-deep));
-  color: var(--gold-bright);
+  padding: 14px 5px;
+  border: 1px solid var(--rule-gold);
+  background:
+    linear-gradient(90deg, rgba(255,255,255,0.16), transparent 45%, rgba(0,0,0,0.18)),
+    var(--vol-tint, #33322d);
+  color: var(--panel-ink);
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.tface-spine .gb-crest { height: 30px; }
+
+.tface-spine .ts-numband {
+  min-width: 26px;
+  padding: 3px 6px;
+  border: 1px solid var(--rule-gold);
+  background: var(--vol-tint, #33322d);
+  color: #fff;
   font-weight: 700;
   font-size: 12px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
+  text-align: center;
 }
 
 .turn-book .tface-pages {
@@ -743,10 +851,10 @@ html.overlay-open .overlay { display: block; }
   content: "";
   position: absolute;
   left: 2px;
-  top: 15px;
-  width: 10px;
-  height: 2px;
-  background: var(--gold);
+  top: 13px;
+  width: 7px;
+  height: 7px;
+  background: #f2ead6;
 }
 
 .overlay-text .button { font-size: 15px; }
@@ -782,11 +890,27 @@ html.overlay-open .overlay { display: block; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .turn-book, .overlay-text { transition: none; }
+  .turn-book, .overlay-text, .overlay { transition: none; }
 }
+
+/* ─── Page fade (cross-page transition) ────────────────────────── */
+.page-fade {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: #171112;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.32s ease;
+}
+.page-fade.is-cover { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .page-fade { transition: none; } }
 </style>
 </head>
 <body>
+
+<div class="page-fade" id="pageFade" aria-hidden="true"></div>
+<script>document.getElementById("pageFade").classList.add("is-cover");</script>
 
 <nav class="site-nav" aria-label="Primary navigation">
   <a class="brand" href="../">
@@ -800,6 +924,8 @@ html.overlay-open .overlay { display: block; }
     <li><a href="../#contactOverlay">Contact</a></li>
   </ul>
 </nav>
+
+<div class="backdrop" aria-hidden="true"></div>
 
 <!-- 3D shelf: spines are rendered here and driven by scroll -->
 <div class="stage-shadow" id="stageShadow" aria-hidden="true"></div>
@@ -866,12 +992,17 @@ html.overlay-open .overlay { display: block; }
         <div class="tface tface-front">
           <div class="tcov-house">Huntington Associates</div>
           <div class="tcov-panel"><span id="tcovTitle"></span></div>
+          <div class="tcov-crest">
+            <svg class="gb-crest" viewBox="0 0 24 28" aria-hidden="true"><path d="M12 1 L23 4 V14 C23 21 18 25.5 12 27 C6 25.5 1 21 1 14 V4 Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M4.5 9.5 H19.5 M4.5 13.5 H19.5 M6 17.5 H18" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>
+          </div>
           <div class="tcov-num" id="tcovNum"></div>
         </div>
         <div class="tface tface-back"></div>
         <div class="tface tface-spine">
           <div class="ts-rules"></div>
           <div class="ts-title" id="tsTitle"></div>
+          <svg class="gb-crest" viewBox="0 0 24 28" aria-hidden="true"><path d="M12 1 L23 4 V14 C23 21 18 25.5 12 27 C6 25.5 1 21 1 14 V4 Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M4.5 9.5 H19.5 M4.5 13.5 H19.5 M6 17.5 H18" stroke="currentColor" stroke-width="1.3" fill="none"/></svg>
+          <div class="ts-numband" id="tsNum"></div>
           <div class="ts-rules"></div>
         </div>
         <div class="tface tface-pages"></div>
@@ -895,6 +1026,7 @@ document.documentElement.classList.remove("no-js");
 const SERVICES = [
   {
     slug: "apis-mcp",
+    tint: "#33322d",
     roman: "I",
     spine: "APIs & MCP Servers",
     title: "Building & integrating API protocols and MCP servers",
@@ -911,6 +1043,7 @@ const SERVICES = [
   },
   {
     slug: "tailored-skills",
+    tint: "#35784f",
     roman: "II",
     spine: "Tailored Skills",
     title: "Tailored “skills” for concurrent and redundant workflows",
@@ -927,6 +1060,7 @@ const SERVICES = [
   },
   {
     slug: "email",
+    tint: "#2e5c94",
     roman: "III",
     spine: "Email Organization",
     title: "Automating email organization",
@@ -943,6 +1077,7 @@ const SERVICES = [
   },
   {
     slug: "spreadsheets",
+    tint: "#dfae37",
     roman: "IV",
     spine: "Spreadsheets",
     title: "Automating spreadsheets",
@@ -959,6 +1094,7 @@ const SERVICES = [
   },
   {
     slug: "bookkeeping",
+    tint: "#c03a30",
     roman: "V",
     spine: "Bookkeeping",
     title: "Bookkeeping",
@@ -975,6 +1111,7 @@ const SERVICES = [
   },
   {
     slug: "administration",
+    tint: "#cd6b32",
     roman: "VI",
     spine: "Administration",
     title: "Administrative organization",
@@ -1004,19 +1141,28 @@ const SERVICES = [
   const overlayClose = document.getElementById("overlayClose");
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-  /* Build the 3D volumes */
-  const vols = SERVICES.map(function (s) {
+  /* Build the 3D volumes — spine layout matches the 1952 Britannica set:
+     grooves | color panel (title) | gold crest | number band | imprint | grooves */
+  const CREST =
+    '<svg class="gb-crest" viewBox="0 0 24 28" aria-hidden="true">' +
+      '<path d="M12 1 L23 4 V14 C23 21 18 25.5 12 27 C6 25.5 1 21 1 14 V4 Z" fill="none" stroke="currentColor" stroke-width="1.6"/>' +
+      '<path d="M4.5 9.5 H19.5 M4.5 13.5 H19.5 M6 17.5 H18" stroke="currentColor" stroke-width="1.3" fill="none"/>' +
+    "</svg>";
+
+  const vols = SERVICES.map(function (s, i) {
     const v = document.createElement("div");
     v.className = "vol";
+    v.style.setProperty("--vol-tint", s.tint);
     v.innerHTML =
       '<div class="face face-spine">' +
         '<div class="gb-rules"></div>' +
-        '<div class="gb-num">' + s.roman + "</div>" +
         '<div class="gb-panel"><span>' + s.spine + "</span></div>" +
+        '<div class="gb-mid">' + CREST + "</div>" +
+        '<div class="gb-numband">' + (i + 1) + "</div>" +
         '<div class="gb-house">Huntington<br>Associates</div>' +
         '<div class="gb-rules"></div>' +
       "</div>" +
-      '<div class="face face-cover-top"><div class="cover-frame"><div class="cover-mark">Huntington Associates</div></div></div>' +
+      '<div class="face face-cover-top"><div class="cover-frame">' + CREST + '<div class="cover-mark">Huntington Associates</div></div></div>' +
       '<div class="face face-cover-bottom"></div>' +
       '<div class="face face-pages-fore"></div>' +
       '<div class="face face-pages-end is-head"></div>' +
@@ -1037,7 +1183,7 @@ const SERVICES = [
   });
 
   /* Geometry */
-  let vh = 0, sectionH = 0, anchors = [], maxScroll = 0;
+  let vh = 0, sectionH = 0, anchors = [], maxScroll = 0, finaleTop = Infinity;
 
   function measure() {
     vh = window.innerHeight;
@@ -1048,6 +1194,8 @@ const SERVICES = [
     anchors = SERVICES.map(function (_, i) {
       return Math.max(0, Math.round(shelfTop + (i + 0.5) * sectionH - vh * 0.5));
     });
+    const finaleEl = document.querySelector(".finale");
+    finaleTop = finaleEl.getBoundingClientRect().top + window.scrollY;
     maxScroll = document.documentElement.scrollHeight - vh;
   }
 
@@ -1068,8 +1216,10 @@ const SERVICES = [
       if (abs < nearestAbs) { nearestAbs = abs; nearest = i; }
 
       /* Neighbors leave the stage once mostly flipped, so resting geometry
-         never pokes into the caption */
-      if (abs > 0.9) {
+         never pokes into the caption. Books also clear the stage entirely
+         once the page has scrolled to the finale, so they can't sweep
+         through its transparent background during long jumps. */
+      if (abs > 0.9 || target > finaleTop - vh * 0.55) {
         vols[i].style.visibility = "hidden";
         continue;
       }
@@ -1087,8 +1237,10 @@ const SERVICES = [
 
     activeIdx = nearest;
 
-    /* Caption + shadow follow the active volume */
-    const capOp = Math.max(0, Math.min(1, 1 - nearestAbs * 1.7));
+    /* Caption + shadow follow the active volume; the caption also fades out
+       as the finale section scrolls into the lower third of the viewport */
+    const finaleFactor = Math.max(0, Math.min(1, ((finaleTop - target) - vh * 0.7) / (vh * 0.2)));
+    const capOp = Math.max(0, Math.min(1, 1 - nearestAbs * 1.7)) * finaleFactor;
     if (captionIdx !== nearest) {
       captionIdx = nearest;
       capVol.textContent = "Volume " + SERVICES[nearest].roman;
@@ -1165,12 +1317,18 @@ const SERVICES = [
   const ovCta = document.getElementById("ovCta");
   let overlayOpen = false, lastFocus = null, closing = null;
 
+  const turnBook = document.getElementById("turnBook");
+  const tsNum = document.getElementById("tsNum");
+
   function openVolume(i) {
     if (closing) { clearTimeout(closing); closing = null; }
+    document.documentElement.classList.remove("overlay-closing");
     const s = SERVICES[i];
+    turnBook.style.setProperty("--vol-tint", s.tint);
     tcovTitle.textContent = s.spine;
     tcovNum.textContent = "Volume " + s.roman;
     tsTitle.textContent = s.spine;
+    tsNum.textContent = i + 1;
     ovVol.textContent = "Volume " + s.roman + " · Great Works of Useful AI";
     ovTitle.textContent = s.title;
     ovBody.innerHTML = s.paras.map(function (p) { return "<p>" + p + "</p>"; }).join("");
@@ -1195,12 +1353,16 @@ const SERVICES = [
     if (closing) return;
     overlayOpen = false;
     overlay.classList.remove("is-open");
+    /* swap states immediately: shelf book reappears behind the glass while
+       the overlay (book still turning back) fades out over it */
+    document.documentElement.classList.remove("overlay-open");
+    document.documentElement.classList.add("overlay-closing");
     history.replaceState(null, "", location.pathname);
     closing = setTimeout(function () {
-      document.documentElement.classList.remove("overlay-open");
+      document.documentElement.classList.remove("overlay-closing");
       closing = null;
       if (lastFocus) lastFocus.focus();
-    }, 430);
+    }, 500);
   }
 
   overlayClose.addEventListener("click", closeVolume);
@@ -1230,6 +1392,31 @@ const SERVICES = [
 
   render();
   requestAnimationFrame(tick);
+})();
+</script>
+<script>
+/* Cross-page fade: dip to dark on internal navigation, fade in on arrival */
+(function () {
+  var fade = document.getElementById("pageFade");
+  requestAnimationFrame(function () {
+    requestAnimationFrame(function () { fade.classList.remove("is-cover"); });
+  });
+  window.addEventListener("pageshow", function (e) {
+    if (e.persisted) fade.classList.remove("is-cover");
+  });
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest ? e.target.closest("a") : null;
+    if (!a || e.defaultPrevented || a.target === "_blank" ||
+        e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    var href = a.getAttribute("href") || "";
+    if (!href || href.charAt(0) === "#") return;
+    if (a.protocol !== "http:" && a.protocol !== "https:") return;
+    if (a.origin !== location.origin) return;
+    if (a.pathname === location.pathname && a.hash) return;
+    e.preventDefault();
+    fade.classList.add("is-cover");
+    setTimeout(function () { location.href = href; }, 300);
+  });
 })();
 </script>
 </body>
