@@ -1,0 +1,1236 @@
+<!doctype html>
+<html lang="en" class="no-js">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Services | Huntington Associates LLC</title>
+<meta name="description" content="Six services, bound as volumes: API protocols &amp; MCP servers, tailored AI skills, email organization, spreadsheet automation, bookkeeping, and administrative organization." />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; }
+
+:root {
+  --bg: #201819;            /* press.stripe.com background */
+  --ink: #ffffff;
+  --muted: rgba(255,255,255,0.62);
+  --faint: rgba(255,255,255,0.34);
+
+  /* Great Books of the Western World binding */
+  --buckram: #e7dcc0;
+  --buckram-dark: #d9cba6;
+  --buckram-deep: #c9b98f;
+  --crimson: #7a1f1c;
+  --crimson-deep: #5c1513;
+  --gold: #c9a227;
+  --gold-bright: #e3c258;
+
+  --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+}
+
+::selection { background: var(--ink); color: var(--bg); }
+
+html { -webkit-text-size-adjust: none; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--serif);
+  font-weight: 500;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+a { color: var(--ink); }
+
+button {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+/* ─── Fixed header ─────────────────────────────────────────────── */
+.site-nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 40;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  padding: clamp(18px, 2.4vw, 34px) clamp(18px, 3vw, 44px);
+  pointer-events: none;
+}
+
+.brand {
+  display: grid;
+  gap: 3px;
+  text-decoration: none;
+  pointer-events: auto;
+}
+
+.brand strong {
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: 0.32px;
+  line-height: 1.15;
+}
+
+.brand em {
+  font-style: italic;
+  font-weight: 500;
+  font-size: 16px;
+  color: var(--muted);
+}
+
+.nav-links {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: auto;
+}
+
+.nav-links a {
+  display: block;
+  padding: 7px 13px;
+  border-radius: 999px;
+  color: rgba(255,255,255,0.72);
+  text-decoration: none;
+  font-size: 15px;
+  letter-spacing: 0.32px;
+  transition: color 0.2s, background 0.2s;
+}
+
+.nav-links a:hover,
+.nav-links a.active {
+  color: var(--ink);
+  background: rgba(255,255,255,0.1);
+}
+
+/* ─── 3D stage ─────────────────────────────────────────────────── */
+.stage {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  perspective: 1600px;
+  perspective-origin: 50% 44%;
+  pointer-events: none;
+}
+
+.stage-shadow {
+  position: fixed;
+  left: 50%;
+  top: 58%;
+  z-index: 0;
+  width: min(700px, 92vw);
+  height: 120px;
+  transform: translate(-50%, 0);
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.38), transparent 58%);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.vol {
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  width: var(--spine-l);
+  height: var(--spine-t);
+  margin-left: calc(var(--spine-l) / -2);
+  margin-top: calc(var(--spine-t) / -2);
+  transform-style: preserve-3d;
+  visibility: hidden;
+  /* transform only: will-change opacity/filter would flatten the 3D group
+     and break backface culling */
+  will-change: transform;
+}
+
+:root {
+  --spine-l: min(640px, 86vw);   /* book height (lying flat, spine toward you) */
+  --spine-t: clamp(64px, 9.5vh, 92px);  /* spine thickness */
+  --spine-d: 240px;              /* book width, receding away from viewer */
+}
+
+.vol .face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+}
+
+/* Spine — the face you read. Great Books binding, lying flat. */
+.face-spine {
+  display: flex;
+  align-items: center;
+  gap: clamp(10px, 2vw, 18px);
+  padding: 0 clamp(12px, 2.4vw, 22px);
+  border-radius: 4px;
+  transform: translateZ(calc(var(--spine-d) / 2));
+  background:
+    repeating-linear-gradient(90deg, rgba(120,96,52,0.05) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(0deg, rgba(255,255,255,0.05) 0 1px, transparent 1px 2px),
+    linear-gradient(180deg, #efe5cb 0%, var(--buckram) 38%, var(--buckram-dark) 82%, var(--buckram-deep) 100%);
+  box-shadow:
+    inset 0 2px 3px rgba(255,255,255,0.55),
+    inset 0 -3px 6px rgba(96,74,38,0.35),
+    inset 6px 0 8px -5px rgba(96,74,38,0.5),
+    inset -6px 0 8px -5px rgba(96,74,38,0.5);
+}
+
+.gb-rules {
+  flex: none;
+  align-self: stretch;
+  width: 7px;
+  margin: 12px 0;
+  border-left: 2px solid var(--gold);
+  border-right: 2px solid var(--gold);
+  opacity: 0.9;
+}
+
+.gb-num {
+  flex: none;
+  color: var(--gold);
+  font-weight: 700;
+  font-size: clamp(15px, 2.1vh, 20px);
+  letter-spacing: 0.12em;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.35), 0 -1px 1px rgba(96,74,38,0.5);
+}
+
+.gb-panel {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  margin: clamp(8px, 1.4vh, 13px) 0;
+  padding: 4px 12px;
+  border: 2px solid var(--gold);
+  outline: 1px solid rgba(201,162,39,0.55);
+  outline-offset: 2px;
+  border-radius: 2px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.14), transparent 40%, rgba(0,0,0,0.22)),
+    linear-gradient(180deg, var(--crimson), var(--crimson-deep));
+  box-shadow: inset 0 0 12px rgba(0,0,0,0.35);
+}
+
+.gb-panel span {
+  overflow: hidden;
+  color: var(--gold-bright);
+  font-weight: 700;
+  font-size: clamp(11px, 2vh, 17px);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-align: center;
+  white-space: nowrap;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.6);
+}
+
+.gb-house {
+  flex: none;
+  color: #8a2f26;
+  font-weight: 700;
+  font-size: clamp(8px, 1.2vh, 10px);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* Box faces: covers and page edges */
+/* selectors carry .vol/.turn-book prefixes so their positioning outranks
+   the base face rule's inset: 0 */
+.vol .face-cover-top,
+.vol .face-cover-bottom {
+  height: var(--spine-d);
+  top: 50%;
+  margin-top: calc(var(--spine-d) / -2);
+  border-radius: 4px;
+  background:
+    repeating-linear-gradient(90deg, rgba(120,96,52,0.05) 0 1px, transparent 1px 3px),
+    linear-gradient(160deg, #efe5cb, var(--buckram) 55%, var(--buckram-dark));
+  box-shadow: inset 0 0 0 2px rgba(201,162,39,0.0), inset 0 0 40px rgba(96,74,38,0.22);
+}
+
+.face-cover-top    { transform: rotateX(90deg)  translateZ(calc(var(--spine-t) / 2)); }
+.face-cover-bottom { transform: rotateX(-90deg) translateZ(calc(var(--spine-t) / 2)); }
+
+.cover-frame {
+  position: absolute;
+  inset: 12px;
+  border: 2px solid var(--gold);
+  border-radius: 2px;
+  opacity: 0.85;
+  display: grid;
+  place-items: center;
+}
+
+.cover-frame::before {
+  content: "";
+  position: absolute;
+  inset: 4px;
+  border: 1px solid rgba(201,162,39,0.6);
+}
+
+.cover-mark {
+  color: var(--crimson);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+}
+
+.face-pages-fore {
+  transform: rotateY(180deg) translateZ(calc(var(--spine-d) / 2));
+  border-radius: 3px;
+  background: repeating-linear-gradient(0deg, #f2ead6 0 1px, #dcd1b4 1px 2px, #efe7d2 2px 3px);
+}
+
+.vol .face-pages-end {
+  width: var(--spine-d);
+  left: 50%;
+  margin-left: calc(var(--spine-d) / -2);
+  border-radius: 3px;
+  background: repeating-linear-gradient(0deg, #f2ead6 0 1px, #dcd1b4 1px 2px, #efe7d2 2px 3px);
+}
+
+.face-pages-end.is-head { transform: rotateY(-90deg) translateZ(calc(var(--spine-l) / 2)); }
+.face-pages-end.is-tail { transform: rotateY(90deg)  translateZ(calc(var(--spine-l) / 2)); }
+
+/* ─── Scroll flow ──────────────────────────────────────────────── */
+.flow { position: relative; z-index: 2; }
+
+.intro-pad { pointer-events: none; }
+
+.shelf { cursor: pointer; }
+
+.vol-copy {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+html.no-js .stage,
+html.no-js .stage-shadow,
+html.no-js .caption,
+html.no-js .indicator { display: none; }
+
+html.no-js .vol-copy {
+  position: static;
+  width: auto; height: auto;
+  margin: 0 auto; padding: 42px 22px;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  max-width: 640px;
+}
+
+/* ─── Caption (active volume) ──────────────────────────────────── */
+.caption {
+  position: fixed;
+  left: 50%;
+  bottom: clamp(26px, 6vh, 64px);
+  z-index: 10;
+  width: min(760px, 92vw);
+  transform: translateX(-50%);
+  text-align: center;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.caption .cap-vol {
+  margin-bottom: 8px;
+  color: var(--faint);
+  font-size: 13px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+}
+
+.caption .cap-title {
+  display: inline;
+  font-style: italic;
+  font-weight: 600;
+  font-size: clamp(20px, 2.6vw, 30px);
+  line-height: 1.2;
+  letter-spacing: 0.2px;
+  pointer-events: auto;
+}
+
+.caption .cap-title:hover,
+.caption .cap-title:focus-visible {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 5px;
+  outline: none;
+}
+
+.caption .cap-hint {
+  margin-top: 10px;
+  color: var(--faint);
+  font-size: 13px;
+  letter-spacing: 0.32px;
+}
+
+/* ─── Right-side volume indicator ──────────────────────────────── */
+.indicator {
+  position: fixed;
+  right: clamp(14px, 2.4vw, 34px);
+  top: 50%;
+  z-index: 10;
+  display: grid;
+  gap: 4px;
+  transform: translateY(-50%);
+}
+
+.indicator button {
+  padding: 5px 8px;
+  color: var(--faint);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-align: right;
+  transition: color 0.25s;
+}
+
+.indicator button:hover { color: var(--muted); }
+.indicator button.active { color: var(--gold-bright); }
+
+/* ─── Finale ───────────────────────────────────────────────────── */
+.finale {
+  position: relative;
+  z-index: 5;
+  min-height: 78vh;
+  display: grid;
+  place-items: center;
+  padding: 110px 22px 70px;
+  background: var(--bg);
+  text-align: center;
+}
+
+.finale-inner { max-width: 720px; }
+
+.finale h2 {
+  margin: 0 0 18px;
+  font-weight: 600;
+  font-size: clamp(34px, 5.4vw, 60px);
+  line-height: 1.04;
+}
+
+.finale p {
+  margin: 0 auto 30px;
+  max-width: 560px;
+  color: var(--muted);
+  font-size: clamp(18px, 2vw, 22px);
+  line-height: 1.5;
+}
+
+.finale-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 46px;
+  padding: 10px 22px;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--bg);
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 0.32px;
+}
+
+.button.secondary {
+  background: transparent;
+  color: var(--ink);
+}
+
+footer {
+  position: relative;
+  z-index: 5;
+  padding: 26px 22px 34px;
+  background: var(--bg);
+  color: var(--faint);
+  text-align: center;
+  font-size: 14px;
+}
+
+/* ─── Detail overlay (book turns, description loads) ───────────── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: none;
+  background: var(--bg);
+  overflow-y: auto;
+}
+
+html.overlay-open { overflow: hidden; }
+html.overlay-open .overlay { display: block; }
+
+.overlay-grid {
+  min-height: 100%;
+  max-width: 1150px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(320px, 0.9fr) minmax(340px, 1.1fr);
+  align-items: center;
+  gap: clamp(30px, 6vw, 90px);
+  /* no top padding: the sticky book zone must start at y0 to center in the
+     viewport; the text column carries its own top padding instead */
+  padding: 0 clamp(22px, 5vw, 60px) 70px;
+}
+
+.overlay-text { padding-top: clamp(90px, 12vh, 130px); }
+
+.overlay-close {
+  position: fixed;
+  top: 22px;
+  right: 22px;
+  z-index: 85;
+  width: 46px;
+  height: 46px;
+  border: 1px solid rgba(255,255,255,0.28);
+  border-radius: 50%;
+  color: var(--ink);
+  font-size: 17px;
+  line-height: 1;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.overlay-close:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.5); }
+
+.overlay-book-zone {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  height: 100vh;
+  display: grid;
+  place-items: center;
+  perspective: 1500px;
+}
+
+:root {
+  --cov-w: min(330px, 72vw);
+  --cov-h: min(490px, 62vh);
+  --cov-d: 62px;
+}
+
+.turn-book {
+  position: relative;
+  width: var(--cov-w);
+  height: var(--cov-h);
+  transform-style: preserve-3d;
+  transform: rotateY(94deg);
+  transition: transform 1s cubic-bezier(0.22, 0.78, 0.24, 1);
+}
+
+.overlay.is-open .turn-book { transform: rotateY(-8deg) rotateX(1deg); }
+
+.turn-book .tface {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+}
+
+.tface-front {
+  transform: translateZ(calc(var(--cov-d) / 2));
+  border-radius: 3px 8px 8px 3px;
+  padding: 26px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  justify-items: center;
+  background:
+    repeating-linear-gradient(0deg, rgba(120,96,52,0.05) 0 1px, transparent 1px 3px),
+    linear-gradient(150deg, #efe5cb, var(--buckram) 55%, var(--buckram-dark));
+  box-shadow:
+    inset 0 0 0 2px rgba(201,162,39,0.0),
+    inset 3px 0 6px -3px rgba(255,255,255,0.6),
+    inset -4px 0 10px -6px rgba(96,74,38,0.55),
+    inset 0 0 46px rgba(96,74,38,0.2);
+}
+
+.tface-front::before {
+  content: "";
+  position: absolute;
+  inset: 14px;
+  border: 2px solid var(--gold);
+  border-radius: 2px;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.tface-front::after {
+  content: "";
+  position: absolute;
+  inset: 19px;
+  border: 1px solid rgba(201,162,39,0.55);
+  pointer-events: none;
+}
+
+.tcov-house {
+  margin-top: 26px;
+  color: var(--crimson);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+.tcov-panel {
+  align-self: center;
+  margin: 0 26px;
+  padding: 18px 20px;
+  border: 2px solid var(--gold);
+  outline: 1px solid rgba(201,162,39,0.55);
+  outline-offset: 2px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.12), transparent 40%, rgba(0,0,0,0.22)),
+    linear-gradient(180deg, var(--crimson), var(--crimson-deep));
+  box-shadow: inset 0 0 14px rgba(0,0,0,0.35);
+}
+
+.tcov-panel span {
+  display: block;
+  color: var(--gold-bright);
+  font-weight: 700;
+  font-size: 17px;
+  letter-spacing: 0.2em;
+  line-height: 1.5;
+  text-align: center;
+  text-transform: uppercase;
+  text-shadow: 0 1px 1px rgba(0,0,0,0.6);
+}
+
+.tcov-num {
+  margin-bottom: 26px;
+  color: var(--gold);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.18em;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.3);
+}
+
+.tface-back {
+  transform: rotateY(180deg) translateZ(calc(var(--cov-d) / 2));
+  border-radius: 8px 3px 3px 8px;
+  background: linear-gradient(150deg, var(--buckram), var(--buckram-dark));
+}
+
+.turn-book .tface-spine {
+  width: var(--cov-d);
+  left: 50%;
+  margin-left: calc(var(--cov-d) / -2);
+  transform: rotateY(-90deg) translateZ(calc(var(--cov-w) / 2));
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  justify-items: center;
+  padding: 14px 6px;
+  background:
+    repeating-linear-gradient(0deg, rgba(120,96,52,0.06) 0 1px, transparent 1px 3px),
+    linear-gradient(90deg, #efe5cb, var(--buckram) 55%, var(--buckram-dark));
+}
+
+.tface-spine .ts-rules {
+  width: 60%;
+  height: 7px;
+  border-top: 2px solid var(--gold);
+  border-bottom: 2px solid var(--gold);
+}
+
+.tface-spine .ts-title {
+  align-self: center;
+  writing-mode: vertical-rl;
+  padding: 14px 4px;
+  border: 2px solid var(--gold);
+  background: linear-gradient(180deg, var(--crimson), var(--crimson-deep));
+  color: var(--gold-bright);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.turn-book .tface-pages {
+  width: var(--cov-d);
+  left: 50%;
+  margin-left: calc(var(--cov-d) / -2);
+  transform: rotateY(90deg) translateZ(calc(var(--cov-w) / 2));
+  background: repeating-linear-gradient(90deg, #f2ead6 0 1px, #dcd1b4 1px 2px, #efe7d2 2px 3px);
+}
+
+.turn-book .tface-pages-top {
+  height: var(--cov-d);
+  top: 50%;
+  margin-top: calc(var(--cov-d) / -2);
+  transform: rotateX(90deg) translateZ(calc(var(--cov-h) / 2));
+  background: repeating-linear-gradient(0deg, #f2ead6 0 1px, #dcd1b4 1px 2px, #efe7d2 2px 3px);
+}
+
+.overlay-text {
+  max-width: 560px;
+  opacity: 0;
+  transform: translateX(26px);
+  transition: opacity 0.6s 0.35s, transform 0.6s 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.overlay.is-open .overlay-text { opacity: 1; transform: none; }
+
+.overlay-text .ov-vol {
+  margin: 0 0 14px;
+  color: var(--faint);
+  font-size: 13px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+}
+
+.overlay-text h2 {
+  margin: 0 0 20px;
+  font-weight: 600;
+  font-size: clamp(30px, 3.6vw, 46px);
+  line-height: 1.06;
+}
+
+.overlay-text p {
+  margin: 0 0 16px;
+  color: rgba(255,255,255,0.78);
+  font-size: 17.5px;
+  line-height: 1.6;
+}
+
+.overlay-text h3 {
+  margin: 26px 0 10px;
+  font-style: italic;
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--muted);
+}
+
+.overlay-text ul {
+  margin: 0 0 26px;
+  padding: 0;
+  list-style: none;
+}
+
+.overlay-text li {
+  position: relative;
+  padding: 5px 0 5px 24px;
+  color: rgba(255,255,255,0.78);
+  font-size: 16.5px;
+  line-height: 1.5;
+}
+
+.overlay-text li::before {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 15px;
+  width: 10px;
+  height: 2px;
+  background: var(--gold);
+}
+
+.overlay-text .button { font-size: 15px; }
+
+/* ─── Responsive ───────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .overlay-grid {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 44px;
+    padding-top: 96px;
+  }
+  .overlay-book-zone {
+    position: static;
+    height: auto;
+  }
+  .overlay-text { padding-top: 0; }
+  .overlay-text { text-align: left; }
+  :root { --cov-h: min(430px, 54vh); }
+  .indicator { display: none; }
+}
+
+@media (max-width: 620px) {
+  .site-nav { flex-direction: column; gap: 10px; }
+  .nav-links { width: 100%; justify-content: space-between; gap: 2px; }
+  .nav-links a { padding: 6px 8px; font-size: 14px; }
+  :root {
+    --spine-t: clamp(52px, 7.5vh, 68px);
+    --spine-d: 170px;
+  }
+  .gb-house { display: none; }
+  .caption .cap-hint { font-size: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .turn-book, .overlay-text { transition: none; }
+}
+</style>
+</head>
+<body>
+
+<nav class="site-nav" aria-label="Primary navigation">
+  <a class="brand" href="../">
+    <strong>Huntington Associates</strong>
+    <em>Services for useful AI</em>
+  </a>
+  <ul class="nav-links">
+    <li><a href="../">Home</a></li>
+    <li><a class="active" href="./" aria-current="page">Services</a></li>
+    <li><a href="../#projects">Projects</a></li>
+    <li><a href="../#contactOverlay">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- 3D shelf: spines are rendered here and driven by scroll -->
+<div class="stage-shadow" id="stageShadow" aria-hidden="true"></div>
+<div class="stage" id="stage" aria-hidden="true"></div>
+
+<div class="caption" id="caption">
+  <p class="cap-vol" id="capVol">Volume I</p>
+  <button class="cap-title" id="capTitle" type="button" aria-haspopup="dialog">&nbsp;</button>
+  <p class="cap-hint">Click the volume to open it</p>
+</div>
+
+<div class="indicator" id="indicator" role="navigation" aria-label="Volumes"></div>
+
+<main class="flow">
+  <div class="intro-pad" id="introPad"></div>
+
+  <div class="shelf" id="shelf">
+    <section class="vol-copy" id="apis-mcp">
+      <h2>Volume I — Building &amp; integrating API protocols and MCP servers</h2>
+      <p>Custom API integrations, webhooks, and sync jobs that connect the systems your business already uses, plus Model Context Protocol servers that give AI assistants safe, governed access to your data and tools.</p>
+    </section>
+    <section class="vol-copy" id="tailored-skills">
+      <h2>Volume II — Tailored “skills” for concurrent and redundant workflows</h2>
+      <p>Repeatable, packaged procedures an AI assistant runs the same way every time — built for the tasks your team repeats, able to run many at once, and no longer living in one person's head.</p>
+    </section>
+    <section class="vol-copy" id="email">
+      <h2>Volume III — Automating email organization</h2>
+      <p>Inboxes that triage themselves: automatic labeling and filing, drafted routine replies, and follow-up tracking so nothing dies in a thread.</p>
+    </section>
+    <section class="vol-copy" id="spreadsheets">
+      <h2>Volume IV — Automating spreadsheets</h2>
+      <p>Reports that assemble themselves, imports that pull from source systems, and checks that catch out-of-band numbers before they become decisions.</p>
+    </section>
+    <section class="vol-copy" id="bookkeeping">
+      <h2>Volume V — Bookkeeping</h2>
+      <p>Clean, current, reconciled books: consistent transaction categorization, monthly reconciliation, invoicing support, and accountant-ready records.</p>
+    </section>
+    <section class="vol-copy" id="administration">
+      <h2>Volume VI — Administrative organization</h2>
+      <p>The connective work every business runs on — filing, records, scheduling, intake, and deadlines — built into systems that keep themselves in order.</p>
+    </section>
+  </div>
+
+  <section class="finale">
+    <div class="finale-inner">
+      <h2>Pick one volume.<br>We’ll put it to work.</h2>
+      <p>Start with the process your team already complains about. Every service here ships as working software inside your business — not a slide deck about it.</p>
+      <div class="finale-actions">
+        <a class="button" href="mailto:nick@huntingtonassociatesllc.com?subject=Services%20inquiry">Email Huntington Associates</a>
+        <a class="button secondary" href="../#projects">View projects</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>&copy; 2026 Huntington Associates LLC. All rights reserved.</footer>
+
+<!-- Detail overlay: the clicked volume turns to its cover and the service description loads -->
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="ovTitle">
+  <button class="overlay-close" id="overlayClose" type="button" aria-label="Close">✕</button>
+  <div class="overlay-grid">
+    <div class="overlay-book-zone" aria-hidden="true">
+      <div class="turn-book" id="turnBook">
+        <div class="tface tface-front">
+          <div class="tcov-house">Huntington Associates</div>
+          <div class="tcov-panel"><span id="tcovTitle"></span></div>
+          <div class="tcov-num" id="tcovNum"></div>
+        </div>
+        <div class="tface tface-back"></div>
+        <div class="tface tface-spine">
+          <div class="ts-rules"></div>
+          <div class="ts-title" id="tsTitle"></div>
+          <div class="ts-rules"></div>
+        </div>
+        <div class="tface tface-pages"></div>
+        <div class="tface tface-pages-top"></div>
+      </div>
+    </div>
+    <div class="overlay-text">
+      <p class="ov-vol" id="ovVol"></p>
+      <h2 id="ovTitle"></h2>
+      <div id="ovBody"></div>
+      <h3>What we build</h3>
+      <ul id="ovList"></ul>
+      <a class="button" id="ovCta" href="#">Email about this service</a>
+    </div>
+  </div>
+</div>
+
+<script>
+document.documentElement.classList.remove("no-js");
+
+const SERVICES = [
+  {
+    slug: "apis-mcp",
+    roman: "I",
+    spine: "APIs & MCP Servers",
+    title: "Building & integrating API protocols and MCP servers",
+    paras: [
+      "Your systems already hold most of the information your business runs on — they just don’t talk to each other. We design and build the connections: API integrations, webhooks, data contracts, and sync jobs that keep your CRM, calendar, database, website, and payment systems consistent without anyone re-typing anything.",
+      "We also build Model Context Protocol (MCP) servers — the open standard that lets AI assistants like Claude safely read, search, and act inside your systems. Instead of pasting context into a chat window, your assistant gets governed access to exactly the tools you approve, with authentication, permissions, and logging built in."
+    ],
+    items: [
+      "Custom integrations between CRMs, calendars, databases, and payment systems",
+      "MCP servers that expose your data and tools to AI assistants",
+      "Webhooks and scheduled sync jobs that keep records consistent",
+      "Authentication, permission scoping, and audit logging throughout"
+    ]
+  },
+  {
+    slug: "tailored-skills",
+    roman: "II",
+    spine: "Tailored Skills",
+    title: "Tailored “skills” for concurrent and redundant workflows",
+    paras: [
+      "A skill is a packaged, repeatable procedure an AI assistant can execute the same way every time — your process, written down and encoded. We build skills tailored to the work your team actually repeats: the weekly report, the intake checklist, the follow-up sequence, the records update.",
+      "Because a skill is consistent, it can run concurrently — twenty records processed in parallel instead of one afternoon each — and it builds redundancy into the workflow. The procedure stops living in one person’s head, and it runs the same on the day they’re out of office."
+    ],
+    items: [
+      "Custom skills built around your recurring workflows",
+      "Concurrent batch processing for high-volume tasks",
+      "Documented procedures that survive staff changes",
+      "Human review steps wherever judgment matters"
+    ]
+  },
+  {
+    slug: "email",
+    roman: "III",
+    spine: "Email Organization",
+    title: "Automating email organization",
+    paras: [
+      "Most inboxes are a to-do list someone else controls. We turn yours into a triage system: incoming mail is automatically labeled and filed by client, project, and urgency; routine requests get replies drafted for your review; and attachments land in the right folders on their own.",
+      "Follow-ups get tracked, not remembered — if a thread goes quiet past its window, it resurfaces. What reaches your attention each morning is a short digest of the messages that genuinely need you."
+    ],
+    items: [
+      "Labeling and filing systems that maintain themselves",
+      "Auto-drafted replies to routine requests, held for your review",
+      "Follow-up and no-response tracking so threads don’t die",
+      "Attachment filing and a daily digest of what needs you"
+    ]
+  },
+  {
+    slug: "spreadsheets",
+    roman: "IV",
+    spine: "Spreadsheets",
+    title: "Automating spreadsheets",
+    paras: [
+      "Spreadsheets are where manual work hides: the weekly report someone rebuilds by hand, the export-copy-paste ritual, the totals nobody fully trusts. We automate the spreadsheets your business actually lives in — Excel or Google Sheets.",
+      "Data pulls in from your source systems on schedule, reports assemble and send themselves, and validation checks flag numbers that fall out of band before they turn into decisions."
+    ],
+    items: [
+      "Scheduled report generation and distribution",
+      "Imports and exports between sheets and your other systems",
+      "Validation and reconciliation checks that flag anomalies",
+      "Dashboards fed by live data instead of copy-paste"
+    ]
+  },
+  {
+    slug: "bookkeeping",
+    roman: "V",
+    spine: "Bookkeeping",
+    title: "Bookkeeping",
+    paras: [
+      "Clean books are a byproduct of good systems, not late nights. We keep yours current: transactions categorized under consistent rules, accounts reconciled monthly, invoices and receivables tracked, and statements ready for your accountant instead of a shoebox of PDFs.",
+      "Automation handles the repetitive entry and matching; review and judgment stay with people. The result is a month-end close that takes hours, not weeks — and numbers you can act on while they still matter."
+    ],
+    items: [
+      "Transaction categorization under consistent, documented rules",
+      "Monthly account reconciliation",
+      "Invoicing and receivables tracking",
+      "Accountant-ready month-end close package"
+    ]
+  },
+  {
+    slug: "administration",
+    roman: "VI",
+    spine: "Administration",
+    title: "Administrative organization",
+    paras: [
+      "Every business runs on connective work: filing, records, scheduling, intake, renewals, deadlines. It’s invisible when it works and expensive when it doesn’t. We build the systems that keep it working.",
+      "Documents file themselves under a naming system people can actually find things in. Intake forms feed structured records instead of someone’s inbox. Calendars coordinate. Renewals and deadlines fire reminders before they’re due — not after."
+    ],
+    items: [
+      "Document filing and naming systems that stay organized",
+      "Scheduling and calendar coordination",
+      "Intake pipelines that turn forms into structured records",
+      "Deadline and renewal tracking with advance reminders"
+    ]
+  }
+];
+
+(function () {
+  const stage = document.getElementById("stage");
+  const shadow = document.getElementById("stageShadow");
+  const shelf = document.getElementById("shelf");
+  const introPad = document.getElementById("introPad");
+  const caption = document.getElementById("caption");
+  const capVol = document.getElementById("capVol");
+  const capTitle = document.getElementById("capTitle");
+  const indicator = document.getElementById("indicator");
+  const overlay = document.getElementById("overlay");
+  const overlayClose = document.getElementById("overlayClose");
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* Build the 3D volumes */
+  const vols = SERVICES.map(function (s) {
+    const v = document.createElement("div");
+    v.className = "vol";
+    v.innerHTML =
+      '<div class="face face-spine">' +
+        '<div class="gb-rules"></div>' +
+        '<div class="gb-num">' + s.roman + "</div>" +
+        '<div class="gb-panel"><span>' + s.spine + "</span></div>" +
+        '<div class="gb-house">Huntington<br>Associates</div>' +
+        '<div class="gb-rules"></div>' +
+      "</div>" +
+      '<div class="face face-cover-top"><div class="cover-frame"><div class="cover-mark">Huntington Associates</div></div></div>' +
+      '<div class="face face-cover-bottom"></div>' +
+      '<div class="face face-pages-fore"></div>' +
+      '<div class="face face-pages-end is-head"></div>' +
+      '<div class="face face-pages-end is-tail"></div>';
+    stage.appendChild(v);
+    return v;
+  });
+
+  /* Right-side numerals */
+  const marks = SERVICES.map(function (s, i) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.textContent = s.roman;
+    b.setAttribute("aria-label", "Volume " + s.roman + ": " + s.title);
+    b.addEventListener("click", function () { goTo(i); });
+    indicator.appendChild(b);
+    return b;
+  });
+
+  /* Geometry */
+  let vh = 0, sectionH = 0, anchors = [], maxScroll = 0;
+
+  function measure() {
+    vh = window.innerHeight;
+    sectionH = Math.round(vh * 0.55);
+    introPad.style.height = Math.max(0, Math.round((vh - sectionH) / 2)) + "px";
+    shelf.style.height = (SERVICES.length * sectionH + Math.round(vh * 0.18)) + "px";
+    const shelfTop = shelf.getBoundingClientRect().top + window.scrollY;
+    anchors = SERVICES.map(function (_, i) {
+      return Math.max(0, Math.round(shelfTop + (i + 0.5) * sectionH - vh * 0.5));
+    });
+    maxScroll = document.documentElement.scrollHeight - vh;
+  }
+
+  /* Smooth (lerped) scroll value driving the 3D scene */
+  let target = window.scrollY, cur = window.scrollY;
+  const EASE = reduceMotion ? 1 : 0.09;
+  const FLIP = 108;    /* degrees per section */
+  const BASE_TILT = -8; /* slight tilt so a sliver of the front cover shows at rest */
+
+  let activeIdx = 0, captionIdx = -1;
+
+  function render() {
+    let nearest = 0, nearestAbs = Infinity;
+
+    for (let i = 0; i < vols.length; i++) {
+      const s = (cur - anchors[i]) / sectionH;
+      const abs = Math.abs(s);
+      if (abs < nearestAbs) { nearestAbs = abs; nearest = i; }
+
+      /* Neighbors leave the stage once mostly flipped, so resting geometry
+         never pokes into the caption */
+      if (abs > 0.9) {
+        vols[i].style.visibility = "hidden";
+        continue;
+      }
+      vols[i].style.visibility = "visible";
+
+      /* Rolodex: upcoming volumes rise from below while flipping to face you.
+         No opacity animation — opacity groups/flattens 3D and breaks backfaces. */
+      const theta = BASE_TILT + s * FLIP;
+      const ty = s * -(vh * 0.68);
+      const tz = -Math.min(1, abs) * 340;
+
+      vols[i].style.transform =
+        "translateZ(" + tz.toFixed(1) + "px) translateY(" + ty.toFixed(1) + "px) rotateX(" + theta.toFixed(2) + "deg)";
+    }
+
+    activeIdx = nearest;
+
+    /* Caption + shadow follow the active volume */
+    const capOp = Math.max(0, Math.min(1, 1 - nearestAbs * 1.7));
+    if (captionIdx !== nearest) {
+      captionIdx = nearest;
+      capVol.textContent = "Volume " + SERVICES[nearest].roman;
+      capTitle.textContent = SERVICES[nearest].title;
+      marks.forEach(function (m, i) { m.classList.toggle("active", i === nearest); });
+    }
+    caption.style.opacity = capOp.toFixed(3);
+    caption.style.pointerEvents = capOp > 0.4 ? "auto" : "none";
+    shadow.style.opacity = (capOp * 0.85).toFixed(3);
+  }
+
+  function tick() {
+    target = window.scrollY;
+    cur += (target - cur) * EASE;
+    if (Math.abs(target - cur) < 0.1) cur = target;
+    render();
+    maybeSnap();
+    requestAnimationFrame(tick);
+  }
+
+  /* Gentle snap to the nearest volume after scrolling settles */
+  let lastUser = performance.now(), lastY = window.scrollY, snapping = false, snapAnim = null;
+
+  function cancelSnap() {
+    snapping = false;
+    if (snapAnim) { cancelAnimationFrame(snapAnim); snapAnim = null; }
+  }
+
+  ["wheel", "touchstart", "touchmove", "keydown", "mousedown"].forEach(function (e) {
+    window.addEventListener(e, function () { lastUser = performance.now(); cancelSnap(); }, { passive: true });
+  });
+
+  window.addEventListener("scroll", function () {
+    if (!snapping && window.scrollY !== lastY) { lastUser = performance.now(); lastY = window.scrollY; }
+  }, { passive: true });
+
+  function maybeSnap() {
+    if (reduceMotion || snapping || overlayOpen) return;
+    if (performance.now() - lastUser < 320) return;
+    const s = (target - anchors[activeIdx]) / sectionH;
+    const abs = Math.abs(s);
+    if (abs < 0.02 || abs > 0.72) return;
+    if (target > anchors[anchors.length - 1] + sectionH * 0.72) return;
+    startSnap(anchors[activeIdx]);
+  }
+
+  function startSnap(to) {
+    snapping = true;
+    const from = window.scrollY, delta = to - from, t0 = performance.now(), dur = 520;
+    function step(now) {
+      if (!snapping) return;
+      const p = Math.min(1, (now - t0) / dur);
+      const e = 1 - Math.pow(1 - p, 3);
+      window.scrollTo(0, Math.round(from + delta * e));
+      if (p < 1) { snapAnim = requestAnimationFrame(step); }
+      else { snapping = false; snapAnim = null; lastUser = performance.now(); lastY = window.scrollY; }
+    }
+    snapAnim = requestAnimationFrame(step);
+  }
+
+  function goTo(i) {
+    cancelSnap();
+    startSnap(anchors[i]);
+  }
+
+  /* Detail overlay: the volume turns and the description loads */
+  const tcovTitle = document.getElementById("tcovTitle");
+  const tcovNum = document.getElementById("tcovNum");
+  const tsTitle = document.getElementById("tsTitle");
+  const ovVol = document.getElementById("ovVol");
+  const ovTitle = document.getElementById("ovTitle");
+  const ovBody = document.getElementById("ovBody");
+  const ovList = document.getElementById("ovList");
+  const ovCta = document.getElementById("ovCta");
+  let overlayOpen = false, lastFocus = null, closing = null;
+
+  function openVolume(i) {
+    if (closing) { clearTimeout(closing); closing = null; }
+    const s = SERVICES[i];
+    tcovTitle.textContent = s.spine;
+    tcovNum.textContent = "Volume " + s.roman;
+    tsTitle.textContent = s.spine;
+    ovVol.textContent = "Volume " + s.roman + " · Great Works of Useful AI";
+    ovTitle.textContent = s.title;
+    ovBody.innerHTML = s.paras.map(function (p) { return "<p>" + p + "</p>"; }).join("");
+    ovList.innerHTML = s.items.map(function (li) { return "<li>" + li + "</li>"; }).join("");
+    ovCta.href = "mailto:nick@huntingtonassociatesllc.com?subject=" +
+      encodeURIComponent("Volume " + s.roman + " — " + s.title);
+
+    lastFocus = document.activeElement;
+    overlayOpen = true;
+    cancelSnap();
+    document.documentElement.classList.add("overlay-open");
+    overlay.scrollTop = 0;
+    /* let the closed state paint once, then turn the book */
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () { overlay.classList.add("is-open"); });
+    });
+    history.replaceState(null, "", "#" + s.slug);
+    overlayClose.focus();
+  }
+
+  function closeVolume() {
+    if (closing) return;
+    overlayOpen = false;
+    overlay.classList.remove("is-open");
+    history.replaceState(null, "", location.pathname);
+    closing = setTimeout(function () {
+      document.documentElement.classList.remove("overlay-open");
+      closing = null;
+      if (lastFocus) lastFocus.focus();
+    }, 430);
+  }
+
+  overlayClose.addEventListener("click", closeVolume);
+  overlay.addEventListener("click", function (e) {
+    if (e.target === overlay || e.target.classList.contains("overlay-grid")) closeVolume();
+  });
+  window.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && overlayOpen) closeVolume();
+  });
+
+  shelf.addEventListener("click", function () {
+    const abs = Math.abs((cur - anchors[activeIdx]) / sectionH);
+    if (abs < 0.5) openVolume(activeIdx);
+  });
+  capTitle.addEventListener("click", function () { openVolume(activeIdx); });
+
+  /* Init */
+  window.addEventListener("resize", measure);
+  measure();
+
+  const initial = SERVICES.findIndex(function (s) { return "#" + s.slug === location.hash; });
+  if (initial >= 0) {
+    window.scrollTo(0, anchors[initial]);
+    cur = target = anchors[initial];
+    openVolume(initial);
+  }
+
+  render();
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>

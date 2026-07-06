@@ -294,6 +294,27 @@ footer {
   .nav-links a { padding: 6px 10px; font-size: 15px; }
   .project-card { padding: 22px 20px; }
 }
+
+@media(max-width:560px){
+  :root { --nav-h: 92px; }
+  nav {
+    height: auto;
+    min-height: var(--nav-h);
+    flex-wrap: wrap;
+    align-content: center;
+    row-gap: 8px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+  .nav-links {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .nav-links a {
+    padding: 6px 8px;
+    font-size: 14px;
+  }
+}
 </style>
 </head>
 <body>
@@ -303,6 +324,7 @@ footer {
   <a class="nav-brand" href="#hero">Huntington Associates</a>
   <ul class="nav-links">
     <li><a href="#hero" data-section="hero">Home</a></li>
+    <li><a href="services/">Services</a></li>
     <li><a href="#projects" data-section="projects">Projects</a></li>
     <li><a href="#contactOverlay" data-section="contactOverlay">Contact</a></li>
   </ul>
@@ -352,7 +374,7 @@ footer {
       <li>Execution — not just advice</li>
     </ul>
     <p style="margin-top: 32px; font-size: 20px;">
-      <a href="#contactOverlay" style="color:#fff; text-decoration: underline; text-underline-offset: 4px;">Let's talk about your business &rarr;</a>
+      <a href="services/" style="color:#fff; text-decoration: underline; text-underline-offset: 4px;">Explore our services &rarr;</a>
     </p>
   </div>
 </section>
