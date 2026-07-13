@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1200" role="img" aria-labelledby="title desc">
+  <title id="title">Northstar adventure rig</title><desc id="desc">A stylized four wheel drive truck and camper in a dramatic mountain landscape.</desc>
+  <defs><linearGradient id="sky" x2="0" y2="1"><stop stop-color="#51665d"/><stop offset=".55" stop-color="#acb5a4"/><stop offset="1" stop-color="#e7b15e"/></linearGradient><linearGradient id="land" x2="0" y2="1"><stop stop-color="#57614d"/><stop offset="1" stop-color="#151b18"/></linearGradient><linearGradient id="truck" x2="1" y2="1"><stop stop-color="#f0ede3"/><stop offset="1" stop-color="#9da095"/></linearGradient><filter id="shadow"><feGaussianBlur stdDeviation="18"/></filter></defs>
+  <rect width="1920" height="1200" fill="url(#sky)"/><circle cx="1530" cy="250" r="128" fill="#f6dc9c" opacity=".78"/>
+  <path d="M0 620 290 330l175 162 240-300 295 360 170-175 260 249 255-298 235 286v260H0Z" fill="#26352f" opacity=".75"/>
+  <path d="M0 720 320 470l155 150 235-285 235 338 244-183 183 186 258-247 330 310v176H0Z" fill="#34483f"/>
+  <path d="m625 438 85-103 83 119-48-22-36 25-30-23Z" fill="#e9e6da" opacity=".84"/><path d="m1315 446 275-17-120 41-55 78Z" fill="#e9e6da" opacity=".74"/>
+  <path d="M0 790c287-75 526-79 748-10 253 79 463 77 663-10 184-80 354-64 509 14v416H0Z" fill="url(#land)"/>
+  <path d="M0 1035c436-146 821-147 1155-3 216 93 471 103 765 30v138H0Z" fill="#111512"/>
+  <ellipse cx="1130" cy="999" rx="520" ry="75" fill="#0a0d0b" opacity=".55" filter="url(#shadow)"/>
+  <g transform="translate(575 535)">
+    <path d="M160 285h734l122 105 28 142H65l15-121Z" fill="url(#truck)" stroke="#0c100e" stroke-width="17"/>
+    <path d="M109 402h866l-31 112H80Z" fill="#1c2522"/><path d="M724 297h167l91 87H731Z" fill="#263632"/><path d="M178 305h284l-38 95H139Z" fill="#172622"/>
+    <rect x="382" y="50" width="420" height="270" rx="18" fill="#dcd9ce" stroke="#0c100e" stroke-width="16"/><path d="M430 86h323v166H430Z" fill="#263b39"/><path d="M416 266h365" stroke="#e33b21" stroke-width="18"/>
+    <path d="M382 64 440 0h315l47 64Z" fill="#202927"/><path d="m845 82 68 0 55 62-122 0Z" fill="#d9ff43" stroke="#0c100e" stroke-width="12"/>
+    <circle cx="243" cy="515" r="105" fill="#0c0f0d" stroke="#3a3e38" stroke-width="26"/><circle cx="243" cy="515" r="37" fill="#bfc1b6"/>
+    <circle cx="828" cy="515" r="105" fill="#0c0f0d" stroke="#3a3e38" stroke-width="26"/><circle cx="828" cy="515" r="37" fill="#bfc1b6"/>
+    <path d="M82 459h63M963 459h61" stroke="#d9ff43" stroke-width="21"/><path d="M74 532h70M931 532h103" stroke="#e33b21" stroke-width="15"/>
+  </g>
+  <path d="M80 1050h320" stroke="#d9ff43" stroke-width="9"/><text x="80" y="1110" fill="#f5f3ed" font-family="Arial, sans-serif" font-weight="900" font-size="34" letter-spacing="8">CHASE THE LONG WAY HOME</text>
+</svg>

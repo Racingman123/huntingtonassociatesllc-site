@@ -1,0 +1,397 @@
+.page {
+  min-height: 100svh;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(420px, 0.95fr);
+  background: var(--color-background, #f5f3ed);
+  color: var(--color-foreground, #141713);
+}
+
+.storyPanel {
+  position: relative;
+  min-height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(28px, 5vw, 72px);
+  color: #fff;
+  background:
+    radial-gradient(circle at 80% 16%, rgba(217, 255, 67, 0.25), transparent 28%),
+    linear-gradient(145deg, #151a15 0%, #252f25 52%, #0d100d 100%);
+}
+
+.storyPanel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.24;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: linear-gradient(to bottom, black, transparent 80%);
+}
+
+.storyPanel > * {
+  position: relative;
+  z-index: 1;
+}
+
+.brandLink {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 11px;
+  color: inherit;
+  text-decoration: none;
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.brandMark {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border-radius: 50%;
+  color: #141713;
+  background: var(--color-accent, #d9ff43);
+  font-size: 0.85rem;
+  letter-spacing: 0;
+}
+
+.storyContent {
+  max-width: 650px;
+  padding: 10vh 0 5vh;
+}
+
+.eyebrow {
+  margin: 0 0 18px;
+  color: var(--color-accent, #d9ff43);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.19em;
+  text-transform: uppercase;
+}
+
+.storyTitle {
+  max-width: 760px;
+  margin: 0;
+  font-size: clamp(3rem, 6.2vw, 6.8rem);
+  font-weight: 900;
+  letter-spacing: -0.065em;
+  line-height: 0.88;
+  text-wrap: balance;
+  text-transform: uppercase;
+}
+
+.storyDescription {
+  max-width: 570px;
+  margin: 28px 0 0;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  line-height: 1.7;
+}
+
+.assuranceRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 22px;
+  margin-top: 34px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.assuranceRow span::before {
+  content: "✓";
+  margin-right: 8px;
+  color: var(--color-accent, #d9ff43);
+}
+
+.legalNote {
+  max-width: 590px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 0.69rem;
+  line-height: 1.6;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.formPanel {
+  display: grid;
+  min-height: 100svh;
+  place-items: center;
+  padding: clamp(30px, 6vw, 84px);
+  background: var(--color-surface, #fff);
+}
+
+.formWrap {
+  width: min(100%, 510px);
+}
+
+.mobileBrand {
+  display: none;
+  margin-bottom: 36px;
+  color: var(--color-foreground, #141713);
+}
+
+.formKicker {
+  margin: 0 0 10px;
+  color: var(--color-primary, #e33b21);
+  font-size: 0.7rem;
+  font-weight: 850;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+}
+
+.formTitle {
+  margin: 0;
+  font-size: clamp(2.35rem, 5vw, 4rem);
+  font-weight: 900;
+  letter-spacing: -0.055em;
+  line-height: 0.98;
+  text-transform: uppercase;
+}
+
+.formIntro {
+  margin: 16px 0 30px;
+  color: var(--color-muted, #666b63);
+  line-height: 1.65;
+}
+
+.form {
+  display: grid;
+  gap: 18px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.fieldRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.label {
+  display: flex;
+  justify-content: space-between;
+  color: var(--color-foreground, #141713);
+  font-size: 0.75rem;
+  font-weight: 780;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.input {
+  width: 100%;
+  min-height: 52px;
+  border: 1px solid var(--color-border, #cbc8be);
+  border-radius: var(--radius-sm, 3px);
+  outline: none;
+  padding: 0 15px;
+  color: var(--color-foreground, #141713);
+  background: var(--color-background, #f5f3ed);
+  font: inherit;
+  transition: border-color 150ms ease, box-shadow 150ms ease, background 150ms ease;
+}
+
+.input:hover {
+  border-color: color-mix(in srgb, var(--color-foreground, #141713) 40%, transparent);
+}
+
+.input:focus {
+  border-color: var(--color-primary, #e33b21);
+  background: var(--color-surface, #fff);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-primary, #e33b21) 15%, transparent);
+}
+
+.input[aria-invalid="true"] {
+  border-color: var(--color-danger, #b92d2d);
+}
+
+.fieldError {
+  margin: 0;
+  color: var(--color-danger, #b92d2d);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+.checkboxLabel {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 11px;
+  align-items: start;
+  color: var(--color-muted, #666b63);
+  font-size: 0.81rem;
+  line-height: 1.5;
+}
+
+.checkbox {
+  width: 17px;
+  height: 17px;
+  margin-top: 2px;
+  accent-color: var(--color-primary, #e33b21);
+}
+
+.checkboxLabel a,
+.switchPrompt a,
+.subtleLink {
+  color: var(--color-foreground, #141713);
+  font-weight: 750;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 35%, transparent);
+  text-underline-offset: 3px;
+}
+
+.submit {
+  display: inline-flex;
+  min-height: 54px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--radius-sm, 3px);
+  padding: 0 22px;
+  color: var(--color-primary-foreground, #fff);
+  background: var(--color-primary, #e33b21);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  transition: transform 150ms ease, filter 150ms ease, opacity 150ms ease;
+}
+
+.submit:hover:not(:disabled) {
+  filter: brightness(0.94);
+  transform: translateY(-1px);
+}
+
+.submit:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+
+.formMessage {
+  margin: -2px 0 0;
+  border-left: 3px solid var(--color-danger, #b92d2d);
+  padding: 10px 13px;
+  color: var(--color-danger, #b92d2d);
+  background: color-mix(in srgb, var(--color-danger, #b92d2d) 8%, transparent);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.switchPrompt {
+  margin: 25px 0 0;
+  color: var(--color-muted, #666b63);
+  font-size: 0.88rem;
+  text-align: center;
+}
+
+.demoBox {
+  margin-top: 30px;
+  border: 1px solid var(--color-border, #cbc8be);
+  border-radius: var(--radius-md, 8px);
+  padding: 18px;
+  background: color-mix(in srgb, var(--color-accent, #d9ff43) 11%, var(--color-background, #f5f3ed));
+}
+
+.demoHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 13px;
+}
+
+.demoHeader strong {
+  font-size: 0.71rem;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.demoBadge {
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: var(--color-accent-foreground, #141713);
+  background: var(--color-accent, #d9ff43);
+  font-size: 0.61rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.demoGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.demoButton {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--color-border, #cbc8be) 80%, transparent);
+  border-radius: var(--radius-sm, 3px);
+  padding: 11px;
+  color: inherit;
+  background: var(--color-surface, #fff);
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.demoButton:hover {
+  border-color: var(--color-foreground, #141713);
+}
+
+.demoButton strong {
+  font-size: 0.72rem;
+}
+
+.demoButton code {
+  overflow: hidden;
+  color: var(--color-muted, #666b63);
+  font-size: 0.66rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .page {
+    display: block;
+  }
+
+  .storyPanel {
+    display: none;
+  }
+
+  .formPanel {
+    padding: 36px 22px 54px;
+  }
+
+  .mobileBrand {
+    display: inline-flex;
+  }
+}
+
+@media (max-width: 520px) {
+  .fieldRow,
+  .demoGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .formTitle {
+    font-size: 2.55rem;
+  }
+}
+

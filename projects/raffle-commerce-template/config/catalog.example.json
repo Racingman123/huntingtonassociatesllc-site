@@ -1,0 +1,130 @@
+{
+  "schemaVersion": 1,
+  "targetTenantSlug": "northstar",
+  "releaseName": "Example launch catalog",
+  "currency": "USD",
+  "products": [
+    {
+      "slug": "example-expedition-tee",
+      "title": "Expedition Heavyweight Tee",
+      "subtitle": "A durable campaign staple",
+      "description": "A heavyweight cotton tee offered in two active size variants.",
+      "productType": "PHYSICAL",
+      "category": "Apparel",
+      "priceCents": 3800,
+      "compareAtCents": 4400,
+      "image": "/demo/products/tee.svg",
+      "secondaryImage": "/demo/products/tee-alt.svg",
+      "badge": "NEW",
+      "entryMultiplier": 1,
+      "featured": true,
+      "inventory": 80,
+      "tags": ["apparel", "launch"],
+      "variants": [
+        {
+          "sku": "EXAMPLE-TEE-M",
+          "title": "Medium",
+          "options": { "size": "M" },
+          "priceCents": null,
+          "inventory": 40,
+          "status": "ACTIVE"
+        },
+        {
+          "sku": "EXAMPLE-TEE-L",
+          "title": "Large",
+          "options": { "size": "L" },
+          "priceCents": null,
+          "inventory": 40,
+          "status": "ACTIVE"
+        }
+      ],
+      "subscriptionPlan": null
+    },
+    {
+      "slug": "example-digital-supporter-pass",
+      "title": "Digital Supporter Pass",
+      "subtitle": null,
+      "description": "A digital supporter product with no physical shipment.",
+      "productType": "DIGITAL",
+      "category": "Digital",
+      "priceCents": 2500,
+      "compareAtCents": null,
+      "image": "/demo/products/pass-gold.svg",
+      "secondaryImage": null,
+      "badge": null,
+      "entryMultiplier": 1,
+      "featured": false,
+      "inventory": 100000,
+      "tags": ["digital"],
+      "variants": [
+        {
+          "sku": "EXAMPLE-DIGITAL-PASS",
+          "title": "Default",
+          "options": {},
+          "priceCents": null,
+          "inventory": 100000,
+          "status": "ACTIVE"
+        }
+      ],
+      "subscriptionPlan": null
+    },
+    {
+      "slug": "example-basecamp-membership",
+      "title": "Basecamp Membership",
+      "subtitle": "Recurring member access",
+      "description": "A monthly membership product. Promotional entries still require campaign-specific membership bands.",
+      "productType": "MEMBERSHIP",
+      "category": "Membership",
+      "priceCents": 2500,
+      "compareAtCents": null,
+      "image": "/demo/products/membership.svg",
+      "secondaryImage": null,
+      "badge": "MEMBER",
+      "entryMultiplier": 1,
+      "featured": true,
+      "inventory": 100000,
+      "tags": ["membership"],
+      "variants": [
+        {
+          "sku": "EXAMPLE-MEMBERSHIP-MONTHLY",
+          "title": "Monthly",
+          "options": { "billing": "monthly" },
+          "priceCents": null,
+          "inventory": 100000,
+          "status": "ACTIVE"
+        }
+      ],
+      "subscriptionPlan": {
+        "name": "Basecamp Monthly",
+        "interval": "MONTH",
+        "intervalCount": 1,
+        "priceCents": 2500,
+        "currency": "USD",
+        "baseEntries": "25",
+        "providerPriceId": null
+      }
+    }
+  ],
+  "collections": [
+    {
+      "slug": "example-new-releases",
+      "title": "New Releases",
+      "description": "The launch catalog in its intended display order.",
+      "image": "/demo/categories/new.svg",
+      "sortOrder": 0,
+      "productSlugs": [
+        "example-expedition-tee",
+        "example-basecamp-membership",
+        "example-digital-supporter-pass"
+      ]
+    },
+    {
+      "slug": "example-membership",
+      "title": "Membership",
+      "description": "Recurring membership products.",
+      "image": "/demo/categories/quick.svg",
+      "sortOrder": 1,
+      "productSlugs": ["example-basecamp-membership"]
+    }
+  ]
+}
