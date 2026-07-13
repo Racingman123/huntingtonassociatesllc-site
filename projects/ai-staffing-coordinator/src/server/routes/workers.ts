@@ -3,6 +3,7 @@ import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { DateTime } from "luxon";
 import { nanoid } from "nanoid";
 import { z } from "zod";
+import { jsonValue } from "../db/json.js";
 import { isPgError, pageParams, requireManager } from "../plugins/http.js";
 import { userAuditContext, writeAuditLog } from "../services/audit.js";
 
@@ -88,6 +89,10 @@ export const workerRoutes: FastifyPluginAsync = async (app) => {
       organizationId: request.user.organizationId,
       phone,
       email: parsed.data.email?.toLowerCase() ?? null,
+      roles: jsonValue(parsed.data.roles),
+      skills: jsonValue(parsed.data.skills),
+      certifications: jsonValue(parsed.data.certifications),
+      availability: jsonValue(parsed.data.availability),
       address: parsed.data.address ?? null,
       notes: parsed.data.notes ?? null,
       voiceConsentAt: parsed.data.voiceConsent ? now : null,
@@ -120,6 +125,10 @@ export const workerRoutes: FastifyPluginAsync = async (app) => {
       return reply.code(400).send({ error: "validation_error", message: "SMS consent requires a recorded consent source" });
     }
     const update: Record<string, unknown> = { ...parsed.data };
+    if (parsed.data.roles !== undefined) update.roles = jsonValue(parsed.data.roles);
+    if (parsed.data.skills !== undefined) update.skills = jsonValue(parsed.data.skills);
+    if (parsed.data.certifications !== undefined) update.certifications = jsonValue(parsed.data.certifications);
+    if (parsed.data.availability !== undefined) update.availability = jsonValue(parsed.data.availability);
     if (parsed.data.phone !== undefined) {
       const phone = normalizePhone(parsed.data.phone);
       if (!phone) return reply.code(400).send({ error: "validation_error", message: "A valid worker phone number is required" });

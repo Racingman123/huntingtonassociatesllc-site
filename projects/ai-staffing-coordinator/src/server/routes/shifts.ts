@@ -3,6 +3,7 @@ import { parsePhoneNumberFromString } from "libphonenumber-js";
 import { DateTime } from "luxon";
 import { nanoid } from "nanoid";
 import { z } from "zod";
+import { jsonValue } from "../db/json.js";
 import { isPgError, pageParams, requireManager } from "../plugins/http.js";
 import { userAuditContext, writeAuditLog } from "../services/audit.js";
 import { enqueueShiftAutoFill, listEligibleWorkers } from "../services/scheduling.js";
@@ -243,6 +244,7 @@ export const shiftRoutes: FastifyPluginAsync = async (app) => {
     const shift = await app.db.insertInto("shifts").values({
       ...parsed.data,
       id: nanoid(), organizationId: request.user.organizationId,
+      requiredSkills: jsonValue(parsed.data.requiredSkills),
       payRateCents: parsed.data.payRateCents ?? null, notes: parsed.data.notes ?? null, autoFillStartedAt: null,
     }).returningAll().executeTakeFirstOrThrow();
     await writeAuditLog(app.db, { ...userAuditContext(request), action: "shift.created", entityType: "shift", entityId: shift.id });
@@ -284,7 +286,8 @@ export const shiftRoutes: FastifyPluginAsync = async (app) => {
     if (parsed.data.status === "open" && accepted >= (parsed.data.headcount ?? current.headcount)) {
       return reply.code(409).send({ error: "shift_full", message: "A shift at accepted headcount cannot be marked open" });
     }
-    const updateData = { ...parsed.data };
+    const updateData: Record<string, unknown> = { ...parsed.data };
+    if (parsed.data.requiredSkills !== undefined) updateData.requiredSkills = jsonValue(parsed.data.requiredSkills);
     if (parsed.data.headcount !== undefined && parsed.data.status === undefined && ["open", "filled"].includes(current.status)) {
       updateData.status = accepted >= parsed.data.headcount ? "filled" : "open";
     }

@@ -4,6 +4,7 @@ import { config } from "../config.js";
 import type { AppConfig } from "../config.js";
 import { BOOTSTRAP_ORGANIZATION_ID, ensureBootstrapAdmin } from "./bootstrap.js";
 import { createDatabase } from "./database.js";
+import { jsonValue } from "./json.js";
 import { migrateToLatest } from "./migrator.js";
 import type { Database } from "./types.js";
 
@@ -86,10 +87,10 @@ export async function seedDemoRecords(
       phone,
       email: `${firstName.toLowerCase()}@example.com`,
       status: "active" as const,
-      roles: [...roles],
-      skills: [...skills],
-      certifications: [{ name: "food-safety", expiresAt: DateTime.utc().plus({ years: 1 }).toISODate()! }],
-      availability: fullAvailability,
+      roles: jsonValue([...roles]),
+      skills: jsonValue([...skills]),
+      certifications: jsonValue([{ name: "food-safety", expiresAt: DateTime.utc().plus({ years: 1 }).toISODate()! }]),
+      availability: jsonValue(fullAvailability),
       timezone: appConfig.DEFAULT_TIMEZONE,
       address: null,
       notes: "Fictional demo worker",
@@ -137,7 +138,7 @@ export async function seedDemoRecords(
     clientId: client.id,
     locationId: location.id,
     role: "Banquet Server",
-    requiredSkills: ["food-safety"],
+    requiredSkills: jsonValue(["food-safety"]),
     startsAt,
     endsAt: DateTime.fromJSDate(startsAt).plus({ hours: 6 }).toJSDate(),
     headcount: 3,
