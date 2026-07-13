@@ -69,6 +69,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.10",
     "jsdom": "^29.1.1",
+    "magicast": "^0.3.5",
     "prisma": "^6.19.3",
     "tailwindcss": "^4",
     "tsx": "^4.23.0",
