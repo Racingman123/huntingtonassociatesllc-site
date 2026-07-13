@@ -119,6 +119,10 @@ Deploy from this directory with the Railway CLI:
 railway up --detach -m "Deploy staffing voice agent"
 ```
 
+The Huntington Associates production service tracks the `main` branch and uses
+`/projects/ai-staffing-coordinator` as its Railway root directory. Its public
+demo is available at `https://staffing.huntingtonassociatesllc.com`.
+
 A queued build is not a successful deployment. Verify the newest deployment reaches `SUCCESS`, then check `/health/ready`, sign in, create a test worker with explicit consent, and complete the launch checklist before real traffic.
 
 ## Important environment variables
