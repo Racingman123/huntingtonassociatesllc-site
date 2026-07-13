@@ -1,0 +1,39 @@
+name: Staffing assistant CI
+
+on:
+  pull_request:
+    paths:
+      - "projects/ai-staffing-coordinator/**"
+      - ".github/workflows/staffing-assistant-ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - "projects/ai-staffing-coordinator/**"
+      - ".github/workflows/staffing-assistant-ci.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: staffing-assistant-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: projects/ai-staffing-coordinator
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: projects/ai-staffing-coordinator/package-lock.json
+      - run: npm ci
+      - run: npm audit --audit-level=high
+      - run: npm run check
