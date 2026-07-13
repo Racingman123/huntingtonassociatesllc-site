@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "targetTenantSlug": "northstar",
+  "tenant": {
+    "displayName": "Your Company",
+    "legalName": "Your Company LLC",
+    "supportEmail": "support@yourcompany.com",
+    "primaryDomain": "giveaways.yourcompany.com",
+    "currency": "USD",
+    "timezone": "America/New_York",
+    "flatShippingCents": 1200,
+    "freeShippingThresholdCents": 15000
+  },
+  "themeReleaseName": "Your Company launch",
+  "theme": {
+    "schemaVersion": 1,
+    "brand": {
+      "displayName": "Your Company",
+      "shortName": "YOURCO",
+      "tagline": "Products worth owning. Promotions worth trusting.",
+      "logoText": "YOURCO",
+      "logoImage": "",
+      "logoAlt": "Your Company"
+    },
+    "colors": {
+      "background": "#f5f3ed",
+      "foreground": "#141713",
+      "surface": "#ffffff",
+      "surfaceStrong": "#e6e2d8",
+      "muted": "#666b63",
+      "primary": "#dc351d",
+      "primaryForeground": "#ffffff",
+      "accent": "#d9ff43",
+      "accentForeground": "#141713",
+      "border": "#cbc8be",
+      "success": "#247a48",
+      "warning": "#ad5d10",
+      "danger": "#b92d2d"
+    },
+    "typography": {
+      "headingFamily": "condensed",
+      "bodyFamily": "sans",
+      "headingWeight": 900,
+      "letterSpacing": -0.035
+    },
+    "shape": {
+      "radiusSmall": 3,
+      "radiusMedium": 8,
+      "radiusLarge": 20,
+      "buttonStyle": "square"
+    },
+    "layout": {
+      "maxWidth": 1480,
+      "announcement": "CURRENT PROMOTION — NO PURCHASE NECESSARY",
+      "heroAlignment": "left",
+      "productCardStyle": "editorial"
+    },
+    "social": {
+      "instagram": "",
+      "youtube": "",
+      "tiktok": ""
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts",
+    ".next-e2e-giveaway-e2e-bKvLeM/types/**/*.ts",
+    ".next-e2e-giveaway-e2e-bKvLeM/dev/types/**/*.ts",
+    ".next-e2e-giveaway-e2e-b9ePk0/types/**/*.ts",
+    ".next-e2e-giveaway-e2e-b9ePk0/dev/types/**/*.ts",
+    ".next-e2e-giveaway-e2e-LmLnsy/types/**/*.ts",
+    ".next-e2e-giveaway-e2e-LmLnsy/dev/types/**/*.ts",
+    ".next-e2e-giveaway-e2e-lFqctF/types/**/*.ts",
+    ".next-e2e-giveaway-e2e-lFqctF/dev/types/**/*.ts",
+    ".next-e2e-giveaway-e2e-ZMr5EJ/types/**/*.ts",
+    ".next-e2e-giveaway-e2e-ZMr5EJ/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

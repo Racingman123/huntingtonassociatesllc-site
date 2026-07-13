@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "targetTenantSlug": "northstar",
+  "releaseName": "Example campaign rules v2",
+  "documents": [
+    {
+      "kind": "OFFICIAL_RULES",
+      "slug": "official-rules",
+      "title": "Official Rules",
+      "version": 2,
+      "effectiveAt": "2027-06-01T00:00:00-04:00",
+      "body": "# Official Rules — Replace Before Use\n\nNO PURCHASE NECESSARY. A PURCHASE WILL NOT INCREASE YOUR CHANCES OF WINNING.\n\nThis file only demonstrates the versioned legal-release workflow. Replace every section with promotion-specific language approved by qualified counsel, including sponsor and administrator, eligibility and exclusions, exact entry windows, purchase and free methods, frequency and cap, prize and approximate value, odds, drawing and verification, alternates, taxes, publicity, privacy, disputes, platform terms, filings, and general conditions. Do not publish this example for a real promotion."
+    }
+  ]
+}

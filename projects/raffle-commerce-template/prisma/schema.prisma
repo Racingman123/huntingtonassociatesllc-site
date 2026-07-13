@@ -1,0 +1,1190 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+// SQLite keeps the template zero-service and fully runnable locally. The domain
+// model uses portable Prisma types so production deployments can switch this
+// provider to PostgreSQL and generate a reviewed migration before launch.
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Tenant {
+  id                         String   @id @default(cuid())
+  slug                       String   @unique
+  displayName                String
+  legalName                  String
+  supportEmail               String
+  primaryDomain              String?  @unique
+  currency                   String   @default("USD")
+  timezone                   String   @default("America/New_York")
+  flatShippingCents          Int      @default(1200)
+  freeShippingThresholdCents Int      @default(15000)
+  status                     String   @default("ACTIVE")
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+
+  themes              ThemeVersion[]
+  users               User[]
+  sessions            Session[]
+  accountChallenges   AccountChallenge[]
+  campaigns           Campaign[]
+  prizes              CampaignPrize[]
+  products            Product[]
+  variants            ProductVariant[]
+  collections         Collection[]
+  entrants            Entrant[]
+  orders              Order[]
+  entryAccounts       EntryAccount[]
+  entitlements        EntryEntitlement[]
+  ledgerEvents        EntryLedgerEvent[]
+  freeEntries         FreeEntrySubmission[]
+  snapshots           EntrySnapshot[]
+  draws               Draw[]
+  winners             Winner[]
+  legalDocuments      LegalDocument[]
+  ruleAcceptances     RulesAcceptance[]
+  consents            ConsentEvent[]
+  audits              AuditEvent[]
+  supportTickets      SupportTicket[]
+  subscribers         NewsletterSubscriber[]
+  subscriptionPlans   SubscriptionPlan[]
+  subscriptions       Subscription[]
+  refunds             Refund[]
+  inventoryEvents     InventoryAdjustment[]
+  campaignApprovals   CampaignApproval[]
+  filingRequirements  FilingRequirement[]
+  adjustmentRequests  EntryAdjustmentRequest[]
+  adjustmentApprovals EntryAdjustmentApproval[]
+  webhookEvents       WebhookEvent[]
+  outboxEvents        OutboxEvent[]
+  rateLimitBuckets    RateLimitBucket[]
+}
+
+model ThemeVersion {
+  id          String    @id @default(cuid())
+  tenantId    String
+  version     Int
+  status      String    @default("DRAFT")
+  name        String
+  configJson  String
+  checksum    String
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, version])
+  @@index([tenantId, status])
+}
+
+model User {
+  id              String    @id @default(cuid())
+  tenantId        String
+  email           String
+  normalizedEmail String
+  name            String
+  passwordHash    String
+  role            String    @default("CUSTOMER")
+  status          String    @default("ACTIVE")
+  emailVerifiedAt DateTime?
+  lastLoginAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  sessions          Session[]
+  accountChallenges AccountChallenge[]
+  entrant           Entrant?
+  orders            Order[]
+  supportTickets    SupportTicket[]
+  subscriptions     Subscription[]
+
+  @@unique([tenantId, normalizedEmail])
+  @@index([tenantId, role, status])
+}
+
+model Session {
+  id        String    @id @default(cuid())
+  tenantId  String
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+}
+
+/// Short-lived, single-use account proof. Only an HMAC digest of the bearer
+/// token is persisted; the signed token is reconstructed by the mail worker.
+model AccountChallenge {
+  id          String    @id
+  tenantId    String
+  userId      String
+  purpose     String
+  tokenDigest String    @unique
+  expiresAt   DateTime
+  consumedAt  DateTime?
+  createdAt   DateTime  @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, purpose, expiresAt])
+  @@index([userId, purpose, consumedAt])
+}
+
+model Campaign {
+  id                    String    @id @default(cuid())
+  tenantId              String
+  slug                  String
+  code                  String
+  title                 String
+  eyebrow               String?
+  shortDescription      String
+  longDescription       String
+  status                String    @default("DRAFT")
+  kind                  String    @default("SWEEPSTAKES")
+  timezone              String    @default("America/New_York")
+  startsAt              DateTime
+  endsAt                DateTime
+  freeEntryEndsAt       DateTime
+  drawAt                DateTime?
+  baseEntriesPerDollar  Int       @default(1)
+  currentMultiplier     Int       @default(1)
+  maxEntriesPerEntrant  BigInt?
+  noPurchaseDisclosure  String    @default("NO PURCHASE NECESSARY. A PURCHASE WILL NOT INCREASE YOUR CHANCES OF WINNING.")
+  eligibilitySummary    String
+  minimumAge            Int       @default(18)
+  eligibleCountriesJson String    @default("[\"US\"]")
+  eligibleRegionsJson   String    @default("[]")
+  excludedRegionsJson   String    @default("[]")
+  rulesVersion          Int       @default(1)
+  /// Immutable pointer and digest for the exact published Official Rules that
+  /// govern this campaign. Nullable only so existing installations can migrate;
+  /// public reads and every entry mutation fail closed when either is absent.
+  officialRulesDocumentId String?
+  officialRulesChecksum   String?
+  configChecksum        String
+  /// Canonical immutable release evidence, including the exact ordinary
+  /// purchase catalog and referenced membership-plan transaction facts.
+  releaseManifestJson   String?
+  approvedAt            DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  tenant             Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  officialRulesDocument LegalDocument?         @relation("CampaignOfficialRules", fields: [officialRulesDocumentId], references: [id], onDelete: Restrict)
+  prizes             CampaignPrize[]
+  entryRules         EntryRule[]
+  multiplierSlots    EntryMultiplierPeriod[]
+  entrants           CampaignEntrant[]
+  accounts           EntryAccount[]
+  freeEntries        FreeEntrySubmission[]
+  orders             Order[]
+  snapshots          EntrySnapshot[]
+  draws              Draw[]
+  winners            Winner[]
+  acceptances        RulesAcceptance[]
+  approvals          CampaignApproval[]
+  filingRequirements FilingRequirement[]
+  membershipBands    MembershipEntryBand[]
+  subscriptions      Subscription[]
+  adjustmentRequests EntryAdjustmentRequest[]
+
+  @@unique([tenantId, slug])
+  @@unique([tenantId, code])
+  @@index([tenantId, status, startsAt, endsAt])
+  @@index([officialRulesDocumentId])
+}
+
+model CampaignPrize {
+  id                    String   @id @default(cuid())
+  tenantId              String
+  campaignId            String
+  name                  String
+  description           String
+  approximateValueCents Int
+  currency              String   @default("USD")
+  quantity              Int      @default(1)
+  cashAlternativeCents  Int?
+  image                 String?
+  sortOrder             Int      @default(0)
+  createdAt             DateTime @default(now())
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  winners  Winner[]
+
+  @@index([campaignId, sortOrder])
+}
+
+model EntryRule {
+  id                    String    @id @default(cuid())
+  campaignId            String
+  name                  String
+  ruleType              String
+  targetType            String    @default("ALL")
+  targetId              String?
+  baseEntries           BigInt    @default(0)
+  entriesPerDollar      Int       @default(1)
+  multiplierNumerator   Int       @default(1)
+  multiplierDenominator Int       @default(1)
+  stackPriority         Int       @default(0)
+  startsAt              DateTime?
+  endsAt                DateTime?
+  version               Int       @default(1)
+  active                Boolean   @default(true)
+  createdAt             DateTime  @default(now())
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+
+  @@index([campaignId, active, stackPriority])
+}
+
+model EntryMultiplierPeriod {
+  id          String   @id @default(cuid())
+  campaignId  String
+  label       String
+  numerator   Int
+  denominator Int      @default(1)
+  startsAt    DateTime
+  endsAt      DateTime
+  createdAt   DateTime @default(now())
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+
+  @@index([campaignId, startsAt, endsAt])
+}
+
+model Product {
+  id              String   @id @default(cuid())
+  tenantId        String
+  slug            String
+  title           String
+  subtitle        String?
+  description     String
+  productType     String   @default("PHYSICAL")
+  status          String   @default("ACTIVE")
+  category        String
+  priceCents      Int
+  compareAtCents  Int?
+  image           String
+  secondaryImage  String?
+  badge           String?
+  entryMultiplier Int      @default(1)
+  featured        Boolean  @default(false)
+  inventory       Int      @default(100)
+  tagsJson        String   @default("[]")
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant           Tenant                @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  variants         ProductVariant[]
+  collections      ProductCollection[]
+  orderLines       OrderLine[]
+  inventoryEvents  InventoryAdjustment[]
+  subscriptionPlan SubscriptionPlan?
+
+  @@unique([tenantId, slug])
+  @@index([tenantId, status, featured])
+  @@index([tenantId, category])
+}
+
+model ProductVariant {
+  id                String   @id @default(cuid())
+  tenantId          String
+  productId         String
+  sku               String
+  title             String
+  optionJson        String   @default("{}")
+  priceCents        Int?
+  inventory         Int      @default(100)
+  reservedInventory Int      @default(0)
+  status            String   @default("ACTIVE")
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  tenant          Tenant                @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  product         Product               @relation(fields: [productId], references: [id], onDelete: Restrict)
+  orderLines      OrderLine[]
+  inventoryEvents InventoryAdjustment[]
+
+  @@unique([tenantId, sku])
+  @@index([productId, status])
+}
+
+model Collection {
+  id          String   @id @default(cuid())
+  tenantId    String
+  slug        String
+  title       String
+  description String
+  image       String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  tenant   Tenant              @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  products ProductCollection[]
+
+  @@unique([tenantId, slug])
+}
+
+model ProductCollection {
+  productId    String
+  collectionId String
+  sortOrder    Int    @default(0)
+
+  product    Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  collection Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+
+  @@id([productId, collectionId])
+  @@index([collectionId, sortOrder])
+}
+
+model Entrant {
+  id                  String   @id @default(cuid())
+  tenantId            String
+  userId              String?  @unique
+  normalizedEmail     String
+  emailHash           String
+  name                String
+  phone               String?
+  country             String   @default("US")
+  region              String?
+  postalCode          String?
+  eligibilityAttested Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  tenant          Tenant                @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  user            User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
+  campaigns       CampaignEntrant[]
+  orders          Order[]
+  accounts        EntryAccount[]
+  freeEntries     FreeEntrySubmission[]
+  winners         Winner[]
+  ruleAcceptances RulesAcceptance[]
+  subscriptions   Subscription[]
+
+  @@index([tenantId, normalizedEmail])
+  @@index([tenantId, emailHash])
+}
+
+model CampaignEntrant {
+  id              String    @id @default(cuid())
+  campaignId      String
+  entrantId       String
+  status          String    @default("ELIGIBLE")
+  eligibilityJson String    @default("{}")
+  flaggedAt       DateTime?
+  reviewedAt      DateTime?
+  reviewReason    String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  entrant  Entrant  @relation(fields: [entrantId], references: [id], onDelete: Restrict)
+
+  @@unique([campaignId, entrantId])
+  @@index([campaignId, status])
+}
+
+model Order {
+  id                         String    @id @default(cuid())
+  tenantId                   String
+  campaignId                 String?
+  entrantId                  String
+  userId                     String?
+  orderNumber                String
+  channel                    String    @default("WEB")
+  status                     String    @default("PENDING")
+  paymentStatus              String    @default("UNPAID")
+  fulfillmentStatus          String    @default("UNFULFILLED")
+  email                      String
+  customerName               String
+  currency                   String    @default("USD")
+  subtotalCents              Int
+  discountCents              Int       @default(0)
+  shippingCents              Int       @default(0)
+  taxCents                   Int       @default(0)
+  totalCents                 Int
+  entryTotal                 BigInt    @default(0)
+  shippingAddressJson        String
+  billingAddressJson         String?
+  provider                   String    @default("DEMO")
+  providerCheckoutId         String?   @unique
+  providerPaymentId          String?
+  idempotencyKey             String
+  checkoutFingerprint        String?
+  receiptTokenHash           String?   @unique
+  checkoutExpiresAt          DateTime?
+  inventoryReservationStatus String    @default("NONE")
+  paidAt                     DateTime?
+  cancelledAt                DateTime?
+  createdAt                  DateTime  @default(now())
+  updatedAt                  DateTime  @updatedAt
+
+  tenant            Tenant                @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  campaign          Campaign?             @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  entrant           Entrant               @relation(fields: [entrantId], references: [id], onDelete: Restrict)
+  user              User?                 @relation(fields: [userId], references: [id], onDelete: SetNull)
+  lines             OrderLine[]
+  payments          Payment[]
+  entitlements      EntryEntitlement[]
+  refunds           Refund[]
+  inventoryEvents   InventoryAdjustment[]
+  subscriptionCycle SubscriptionCycle?
+
+  @@unique([tenantId, orderNumber])
+  @@unique([tenantId, idempotencyKey])
+  @@index([tenantId, createdAt])
+  @@index([tenantId, provider, checkoutExpiresAt])
+  @@index([campaignId, paymentStatus])
+  @@index([entrantId, createdAt])
+}
+
+model OrderLine {
+  id                   String   @id @default(cuid())
+  orderId              String
+  productId            String
+  variantId            String?
+  productTitle         String
+  variantTitle         String?
+  sku                  String?
+  quantity             Int
+  unitPriceCents       Int
+  discountCents        Int      @default(0)
+  qualifyingCents      Int
+  entryMultiplier      Int      @default(1)
+  entryMultiplierDenominator Int @default(1)
+  entries              BigInt   @default(0)
+  entryCalculationJson String
+  createdAt            DateTime @default(now())
+
+  order             Order                  @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  product           Product                @relation(fields: [productId], references: [id], onDelete: Restrict)
+  variant           ProductVariant?        @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  entitlements      EntryEntitlement[]
+  refundAllocations RefundLineAllocation[]
+
+  @@index([orderId])
+}
+
+model Payment {
+  id                String    @id @default(cuid())
+  orderId           String
+  provider          String
+  providerEventId   String?
+  providerPaymentId String?
+  status            String
+  amountCents       Int
+  currency          String
+  payloadHash       String?
+  idempotencyKey    String    @unique
+  processedAt       DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  order   Order    @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  refunds Refund[]
+
+  @@unique([provider, providerEventId])
+  @@index([orderId, status])
+}
+
+model EntryAccount {
+  id         String   @id @default(cuid())
+  tenantId   String
+  campaignId String
+  entrantId  String
+  balance    BigInt   @default(0)
+  version    Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  tenant             Tenant                   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  campaign           Campaign                 @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  entrant            Entrant                  @relation(fields: [entrantId], references: [id], onDelete: Restrict)
+  entitlements       EntryEntitlement[]
+  ledgerEvents       EntryLedgerEvent[]
+  snapshotRows       EntrySnapshotRow[]
+  drawCandidates     DrawCandidate[]
+  adjustmentRequests EntryAdjustmentRequest[]
+
+  @@unique([campaignId, entrantId])
+  @@index([tenantId, campaignId, balance])
+}
+
+model EntryEntitlement {
+  id                    String   @id @default(cuid())
+  tenantId              String
+  entryAccountId        String
+  orderId               String?
+  orderLineId           String?
+  freeEntrySubmissionId String?  @unique
+  originType            String
+  status                String   @default("POSTED")
+  originalEntries       BigInt
+  calculationJson       String
+  campaignConfigHash    String
+  idempotencyKey        String
+  effectiveAt           DateTime
+  createdAt             DateTime @default(now())
+
+  tenant              Tenant               @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  account             EntryAccount         @relation(fields: [entryAccountId], references: [id], onDelete: Restrict)
+  order               Order?               @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  orderLine           OrderLine?           @relation(fields: [orderLineId], references: [id], onDelete: Restrict)
+  freeEntrySubmission FreeEntrySubmission? @relation(fields: [freeEntrySubmissionId], references: [id], onDelete: Restrict)
+  ledgerEvents        EntryLedgerEvent[]
+
+  @@unique([tenantId, idempotencyKey])
+  @@index([entryAccountId, effectiveAt])
+}
+
+model EntryLedgerEvent {
+  id              String   @id @default(cuid())
+  tenantId        String
+  entryAccountId  String
+  entitlementId   String?
+  kind            String
+  delta           BigInt
+  reversesEventId String?
+  idempotencyKey  String
+  effectiveAt     DateTime
+  recordedAt      DateTime @default(now())
+  actorType       String   @default("SYSTEM")
+  actorId         String?
+  reasonCode      String
+  metadataJson    String   @default("{}")
+
+  tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  account     EntryAccount      @relation(fields: [entryAccountId], references: [id], onDelete: Restrict)
+  entitlement EntryEntitlement? @relation(fields: [entitlementId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, idempotencyKey])
+  @@index([entryAccountId, recordedAt, id])
+  @@index([tenantId, effectiveAt])
+}
+
+model FreeEntrySubmission {
+  id               String    @id @default(cuid())
+  tenantId         String
+  campaignId       String
+  entrantId        String
+  method           String    @default("ONLINE")
+  status           String    @default("PENDING")
+  entriesRequested BigInt
+  confirmationCode String    @unique
+  rulesVersion     Int
+  eligibilityJson  String
+  fingerprintHash  String
+  submittedAt      DateTime  @default(now())
+  postmarkedAt     DateTime?
+  receivedAt       DateTime?
+  reviewedAt       DateTime?
+  reviewedBy       String?
+  rejectionReason  String?
+
+  tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  campaign    Campaign          @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  entrant     Entrant           @relation(fields: [entrantId], references: [id], onDelete: Restrict)
+  entitlement EntryEntitlement?
+
+  @@unique([campaignId, fingerprintHash])
+  @@index([campaignId, status, submittedAt])
+  @@index([tenantId, submittedAt])
+}
+
+model EntrySnapshot {
+  id                String    @id @default(cuid())
+  tenantId          String
+  campaignId        String
+  version           Int
+  status            String    @default("DRAFT")
+  cutoffAt          DateTime
+  ledgerHighWaterAt DateTime
+  totalEntries      BigInt
+  entrantCount      Int
+  checksum          String
+  sealedAt          DateTime?
+  sealedBy          String?
+  createdAt         DateTime  @default(now())
+
+  tenant    Tenant             @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  campaign  Campaign           @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  rows      EntrySnapshotRow[]
+  draws     Draw[]
+  approvals SnapshotApproval[]
+
+  @@unique([campaignId, version])
+  @@index([campaignId, status])
+}
+
+model EntrySnapshotRow {
+  id             String @id @default(cuid())
+  snapshotId     String
+  entryAccountId String
+  entryCount     BigInt
+  rangeStart     BigInt
+  rangeEnd       BigInt
+
+  snapshot EntrySnapshot @relation(fields: [snapshotId], references: [id], onDelete: Restrict)
+  account  EntryAccount  @relation(fields: [entryAccountId], references: [id], onDelete: Restrict)
+
+  @@unique([snapshotId, entryAccountId])
+  @@unique([snapshotId, rangeStart])
+  @@index([snapshotId, rangeEnd])
+}
+
+model Draw {
+  id               String    @id @default(cuid())
+  tenantId         String
+  campaignId       String
+  snapshotId       String    @unique
+  status           String    @default("DRAFT")
+  provider         String    @default("INTERNAL_DEMO")
+  algorithm        String    @default("CSPRNG_REJECTION_V1")
+  algorithmVersion Int       @default(1)
+  seedHash         String?
+  encryptedSeed    String?
+  resultChecksum   String?
+  operatorId       String?
+  witnessId        String?
+  conductedAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  tenant     Tenant          @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  campaign   Campaign        @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  snapshot   EntrySnapshot   @relation(fields: [snapshotId], references: [id], onDelete: Restrict)
+  candidates DrawCandidate[]
+
+  @@index([campaignId, status])
+}
+
+model DrawCandidate {
+  id              String    @id @default(cuid())
+  drawId          String
+  entryAccountId  String
+  rank            Int
+  selectedEntry   BigInt
+  status          String    @default("SELECTED")
+  contactDeadline DateTime?
+  verifiedAt      DateTime?
+  decisionReason  String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  draw    Draw         @relation(fields: [drawId], references: [id], onDelete: Restrict)
+  account EntryAccount @relation(fields: [entryAccountId], references: [id], onDelete: Restrict)
+  winner  Winner?
+
+  @@unique([drawId, rank])
+  @@index([drawId, status])
+}
+
+model Winner {
+  id              String    @id @default(cuid())
+  tenantId        String
+  campaignId      String
+  prizeId         String
+  entrantId       String
+  drawCandidateId String    @unique
+  slug            String
+  status          String    @default("PROVISIONAL")
+  publicName      String?
+  publicLocation  String?
+  quote           String?
+  image           String?
+  videoUrl        String?
+  verifiedAt      DateTime?
+  publishedAt     DateTime?
+  fulfilledAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  campaign      Campaign      @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  prize         CampaignPrize @relation(fields: [prizeId], references: [id], onDelete: Restrict)
+  entrant       Entrant       @relation(fields: [entrantId], references: [id], onDelete: Restrict)
+  drawCandidate DrawCandidate @relation(fields: [drawCandidateId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, slug])
+  @@index([tenantId, status, publishedAt])
+}
+
+model LegalDocument {
+  id          String    @id @default(cuid())
+  tenantId    String
+  kind        String
+  slug        String
+  title       String
+  version     Int
+  body        String
+  checksum    String
+  status      String    @default("DRAFT")
+  effectiveAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  tenant      Tenant            @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  acceptances RulesAcceptance[]
+  governingCampaigns Campaign[] @relation("CampaignOfficialRules")
+
+  @@unique([tenantId, kind, version])
+  @@unique([tenantId, slug, version])
+  @@index([tenantId, status, kind])
+}
+
+model RulesAcceptance {
+  id               String   @id @default(cuid())
+  tenantId         String
+  campaignId       String
+  entrantId        String
+  legalDocumentId  String
+  documentChecksum String
+  method           String
+  acceptedAt       DateTime @default(now())
+
+  tenant        Tenant        @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  campaign      Campaign      @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  entrant       Entrant       @relation(fields: [entrantId], references: [id], onDelete: Restrict)
+  legalDocument LegalDocument @relation(fields: [legalDocumentId], references: [id], onDelete: Restrict)
+
+  @@unique([campaignId, entrantId, legalDocumentId, method])
+  @@index([tenantId, acceptedAt])
+}
+
+model ConsentEvent {
+  id            String   @id @default(cuid())
+  tenantId      String
+  subjectHash   String
+  channel       String
+  action        String
+  policyVersion String
+  disclosure    String
+  source        String
+  createdAt     DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, subjectHash, channel, createdAt])
+}
+
+model AuditEvent {
+  id           String   @id @default(cuid())
+  tenantId     String
+  actorType    String
+  actorId      String?
+  action       String
+  resourceType String
+  resourceId   String?
+  requestId    String?
+  reason       String?
+  metadataJson String   @default("{}")
+  createdAt    DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@index([tenantId, createdAt])
+  @@index([tenantId, resourceType, resourceId])
+}
+
+model SupportTicket {
+  id        String   @id @default(cuid())
+  tenantId  String
+  userId    String?
+  email     String
+  name      String
+  subject   String
+  message   String
+  status    String   @default("OPEN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, status, createdAt])
+}
+
+model NewsletterSubscriber {
+  id              String    @id @default(cuid())
+  tenantId        String
+  email           String
+  normalizedEmail String
+  status          String    @default("SUBSCRIBED")
+  source          String
+  consentText     String
+  subscribedAt    DateTime  @default(now())
+  unsubscribedAt  DateTime?
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, normalizedEmail])
+  @@index([tenantId, status])
+}
+
+model SubscriptionPlan {
+  id              String   @id @default(cuid())
+  tenantId        String
+  productId       String   @unique
+  name            String
+  status          String   @default("ACTIVE")
+  interval        String   @default("MONTH")
+  intervalCount   Int      @default(1)
+  priceCents      Int
+  currency        String   @default("USD")
+  baseEntries     BigInt   @default(0)
+  providerPriceId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  tenant        Tenant                @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  product       Product               @relation(fields: [productId], references: [id], onDelete: Restrict)
+  subscriptions Subscription[]
+  entryBands    MembershipEntryBand[]
+
+  @@index([tenantId, status])
+}
+
+model MembershipEntryBand {
+  id                    String   @id @default(cuid())
+  campaignId            String
+  planId                String
+  minimumSettledCycles  Int      @default(0)
+  maximumSettledCycles  Int?
+  fixedEntries          BigInt
+  multiplierNumerator   Int      @default(1)
+  multiplierDenominator Int      @default(1)
+  createdAt             DateTime @default(now())
+
+  campaign Campaign         @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  plan     SubscriptionPlan @relation(fields: [planId], references: [id], onDelete: Restrict)
+
+  @@unique([campaignId, planId, minimumSettledCycles])
+  @@index([campaignId, planId])
+}
+
+model Subscription {
+  id                       String    @id @default(cuid())
+  tenantId                 String
+  planId                   String
+  userId                   String?
+  entrantId                String
+  campaignId               String?
+  status                   String    @default("ACTIVE")
+  provider                 String    @default("DEMO")
+  providerSubscriptionId   String?
+  providerCustomerId       String?
+  providerCheckoutId       String?   @unique
+  providerPriceId          String?
+  enrollmentIdempotencyKey String?
+  enrollmentFingerprint    String?   @unique
+  enrollmentLockKey        String?   @unique
+  checkoutExpiresAt        DateTime?
+  priceCents               Int?
+  currency                 String?
+  billingInterval          String?
+  billingIntervalCount     Int?
+  providerStateUpdatedAt   DateTime?
+  providerStateEventId     String?
+  settledCycleCount        Int       @default(0)
+  continuousSince          DateTime
+  currentPeriodStartsAt    DateTime
+  currentPeriodEndsAt      DateTime
+  cancelAtPeriodEnd        Boolean   @default(false)
+  cancelledAt              DateTime?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+
+  tenant   Tenant              @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  plan     SubscriptionPlan    @relation(fields: [planId], references: [id], onDelete: Restrict)
+  user     User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  entrant  Entrant             @relation(fields: [entrantId], references: [id], onDelete: Restrict)
+  campaign Campaign?           @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  cycles   SubscriptionCycle[]
+
+  @@unique([tenantId, provider, providerSubscriptionId])
+  @@unique([tenantId, enrollmentIdempotencyKey])
+  @@index([tenantId, status, currentPeriodEndsAt])
+  @@index([tenantId, provider, checkoutExpiresAt])
+  @@index([entrantId, status])
+}
+
+model SubscriptionCycle {
+  id                  String    @id @default(cuid())
+  subscriptionId      String
+  orderId             String    @unique
+  cycleNumber         Int
+  status              String    @default("PENDING")
+  periodStartsAt      DateTime
+  periodEndsAt        DateTime
+  settledAt           DateTime?
+  baseEntries         BigInt    @default(0)
+  multiplierNumerator Int       @default(1)
+  multiplierDenominator Int     @default(1)
+  providerInvoiceId   String?   @unique
+  createdAt           DateTime  @default(now())
+
+  subscription      Subscription            @relation(fields: [subscriptionId], references: [id], onDelete: Restrict)
+  order             Order                   @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  adjustmentRequest EntryAdjustmentRequest?
+
+  @@unique([subscriptionId, cycleNumber])
+  @@index([subscriptionId, status])
+}
+
+model Refund {
+  id                    String    @id @default(cuid())
+  tenantId              String
+  orderId               String
+  paymentId             String?
+  status                String    @default("PENDING")
+  amountCents           Int
+  merchandiseCents      Int       @default(0)
+  shippingCents         Int       @default(0)
+  taxCents              Int       @default(0)
+  currency              String
+  reason                String
+  providerReason        String    @default("requested_by_customer")
+  evidence              String    @default("")
+  allocationFingerprint String    @default("")
+  providerRefundId      String?
+  providerStatus        String?
+  providerEventId       String?
+  failureReason         String?
+  failedAt              DateTime?
+  idempotencyKey        String
+  requestedBy           String
+  processedAt           DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  tenant            Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  order             Order                   @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  payment           Payment?                @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  allocations       RefundLineAllocation[]
+  adjustmentRequest EntryAdjustmentRequest?
+
+  @@unique([tenantId, idempotencyKey])
+  @@unique([tenantId, providerRefundId])
+  @@index([orderId, status])
+}
+
+model RefundLineAllocation {
+  id              String @id @default(cuid())
+  refundId        String
+  orderLineId     String
+  amountCents     Int
+  entriesReversed BigInt @default(0)
+
+  refund    Refund    @relation(fields: [refundId], references: [id], onDelete: Restrict)
+  orderLine OrderLine @relation(fields: [orderLineId], references: [id], onDelete: Restrict)
+
+  @@unique([refundId, orderLineId])
+  @@index([orderLineId])
+}
+
+model InventoryAdjustment {
+  id             String   @id @default(cuid())
+  tenantId       String
+  productId      String
+  variantId      String?
+  orderId        String?
+  delta          Int
+  reasonCode     String
+  actorType      String   @default("SYSTEM")
+  actorId        String?
+  idempotencyKey String
+  metadataJson   String   @default("{}")
+  createdAt      DateTime @default(now())
+
+  tenant  Tenant          @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  product Product         @relation(fields: [productId], references: [id], onDelete: Restrict)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Restrict)
+  order   Order?          @relation(fields: [orderId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, idempotencyKey])
+  @@index([variantId, createdAt])
+}
+
+model CampaignApproval {
+  id             String    @id @default(cuid())
+  tenantId       String
+  campaignId     String
+  kind           String
+  status         String    @default("PENDING")
+  configChecksum String
+  rulesChecksum  String?
+  approverId     String?
+  notes          String?
+  evidenceRef    String?
+  decidedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+
+  @@unique([campaignId, kind, configChecksum])
+  @@index([tenantId, status])
+}
+
+model FilingRequirement {
+  id              String    @id @default(cuid())
+  tenantId        String
+  campaignId      String
+  jurisdiction    String
+  kind            String
+  triggerReason   String
+  dueAt           DateTime?
+  status          String    @default("REQUIRED")
+  evidenceRef     String?
+  waiverRationale String?
+  approvedBy      String?
+  completedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  tenant   Tenant   @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  campaign Campaign @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+
+  @@unique([campaignId, jurisdiction, kind])
+  @@index([tenantId, status, dueAt])
+}
+
+model EntryAdjustmentRequest {
+  id             String    @id @default(cuid())
+  tenantId       String
+  campaignId     String
+  entryAccountId String
+  refundId       String?   @unique
+  subscriptionCycleId String? @unique
+  requestedBy    String
+  kind           String
+  delta          BigInt
+  reasonCode     String
+  explanation    String
+  evidenceRef    String?
+  status         String    @default("PENDING")
+  reviewedBy     String?
+  decisionNotes  String?
+  disposition    String?
+  decidedAt      DateTime?
+  appliedAt      DateTime?
+  ledgerEventId  String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  tenant            Tenant                    @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  campaign          Campaign                  @relation(fields: [campaignId], references: [id], onDelete: Restrict)
+  account           EntryAccount              @relation(fields: [entryAccountId], references: [id], onDelete: Restrict)
+  refund            Refund?                   @relation(fields: [refundId], references: [id], onDelete: Restrict)
+  subscriptionCycle SubscriptionCycle?        @relation(fields: [subscriptionCycleId], references: [id], onDelete: Restrict)
+  approvals         EntryAdjustmentApproval[]
+
+  @@index([tenantId, status, createdAt])
+  @@index([campaignId, entryAccountId])
+  @@index([subscriptionCycleId])
+}
+
+model EntryAdjustmentApproval {
+  id           String   @id @default(cuid())
+  tenantId     String
+  requestId    String
+  kind         String
+  approverId   String
+  approverRole String
+  evidenceRef  String?
+  notes        String
+  disposition  String?
+  createdAt    DateTime @default(now())
+
+  tenant  Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+  request EntryAdjustmentRequest @relation(fields: [requestId], references: [id], onDelete: Restrict)
+
+  @@unique([requestId, kind])
+  @@index([tenantId, createdAt])
+}
+
+model SnapshotApproval {
+  id         String    @id @default(cuid())
+  snapshotId String
+  kind       String
+  status     String    @default("PENDING")
+  approverId String?
+  notes      String?
+  decidedAt  DateTime?
+  createdAt  DateTime  @default(now())
+
+  snapshot EntrySnapshot @relation(fields: [snapshotId], references: [id], onDelete: Restrict)
+
+  @@unique([snapshotId, kind])
+  @@index([snapshotId, status])
+}
+
+model WebhookEvent {
+  id              String    @id @default(cuid())
+  tenantId        String
+  provider        String
+  providerEventId String
+  eventType       String
+  payloadHash     String
+  status          String    @default("RECEIVED")
+  attempts        Int       @default(0)
+  lastError       String?
+  receivedAt      DateTime  @default(now())
+  processedAt     DateTime?
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, provider, providerEventId])
+  @@index([tenantId, status, receivedAt])
+}
+
+model OutboxEvent {
+  id             String    @id @default(cuid())
+  tenantId       String
+  aggregateType  String
+  aggregateId    String
+  kind           String
+  payloadJson    String
+  status         String    @default("PENDING")
+  attempts       Int       @default(0)
+  idempotencyKey String
+  nextAttemptAt  DateTime  @default(now())
+  processedAt    DateTime?
+  lastError      String?
+  createdAt      DateTime  @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Restrict)
+
+  @@unique([tenantId, idempotencyKey])
+  @@index([tenantId, status, nextAttemptAt])
+}
+
+model RateLimitBucket {
+  id             String   @id @default(cuid())
+  tenantId       String
+  scope          String
+  identifierHash String
+  windowStart    DateTime
+  count          Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, scope, identifierHash, windowStart])
+  @@index([tenantId, scope, windowStart])
+  @@index([windowStart])
+}

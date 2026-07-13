@@ -1,0 +1,185 @@
+{
+  "schemaVersion": 1,
+  "targetTenantSlug": "northstar",
+  "campaign": {
+    "slug": "summer-adventure-rig",
+    "code": "SUMMER-2027",
+    "title": "Win the Summer Adventure Rig",
+    "eyebrow": "THE SUMMER GIVEAWAY",
+    "shortDescription": "A complete adventure vehicle package and cash for the first trip.",
+    "longDescription": "One verified winner receives the complete adventure vehicle package described in the Official Rules, subject to verification and all prize restrictions.",
+    "kind": "SWEEPSTAKES",
+    "currency": "USD",
+    "timezone": "America/New_York",
+    "windows": {
+      "startsAt": "2027-06-01T00:00:00-04:00",
+      "purchaseEndsAt": "2027-07-01T23:59:59-04:00",
+      "freeEntryEndsAt": "2027-07-03T23:59:59-04:00",
+      "drawAt": "2027-07-10T12:00:00-04:00"
+    },
+    "baseEntriesPerCurrencyUnit": 1,
+    "maxEntriesPerEntrant": "1000000",
+    "noPurchaseDisclosure": "NO PURCHASE NECESSARY. A PURCHASE WILL NOT INCREASE YOUR CHANCES OF WINNING.",
+    "eligibilitySummary": "Open to legal residents of the 48 contiguous United States and D.C., age 18 or older and age of majority. Void where prohibited.",
+    "eligibility": {
+      "minimumAge": 18,
+      "eligibleCountries": [
+        "US"
+      ],
+      "eligibleRegions": [
+        "AL", "AZ", "AR", "CA", "CO", "CT", "DE", "DC", "FL", "GA",
+        "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA",
+        "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM",
+        "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD",
+        "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY"
+      ],
+      "excludedRegions": [
+        "AK", "HI", "PR", "GU", "VI", "AS", "MP"
+      ]
+    },
+    "officialRules": {
+      "version": 2,
+      "checksum": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "prizes": [
+      {
+        "name": "Summer Adventure Rig",
+        "description": "A fully configured adventure vehicle package as specified in the Official Rules.",
+        "approximateValueCents": 18500000,
+        "currency": "USD",
+        "quantity": 1,
+        "cashAlternativeCents": 12500000,
+        "image": "/brand/prizes/summer-adventure-rig.webp",
+        "sortOrder": 0
+      }
+    ],
+    "purchaseEntryRules": [
+      {
+        "name": "Standard merchandise",
+        "targetType": "ALL",
+        "targetId": null,
+        "entriesPerCurrencyUnit": 1,
+        "multiplierNumerator": 1,
+        "multiplierDenominator": 1,
+        "stackPriority": 0,
+        "startsAt": null,
+        "endsAt": null,
+        "version": 1,
+        "active": true
+      }
+    ],
+    "freeEntryRule": {
+      "name": "Online alternative method of entry",
+      "entriesPerSubmission": "25000",
+      "stackPriority": 100,
+      "startsAt": null,
+      "endsAt": null,
+      "version": 1,
+      "active": true
+    },
+    "multiplierSchedule": [
+      {
+        "label": "Launch 20X",
+        "numerator": 20,
+        "denominator": 1,
+        "startsAt": "2027-06-01T00:00:00-04:00",
+        "endsAt": "2027-06-15T00:00:00-04:00"
+      },
+      {
+        "label": "Final 10X",
+        "numerator": 10,
+        "denominator": 1,
+        "startsAt": "2027-06-15T00:00:00-04:00",
+        "endsAt": "2027-07-01T23:59:59-04:00"
+      }
+    ],
+    "membershipEntryBands": [
+      {
+        "planProductSlug": "basecamp-membership",
+        "minimumSettledCycles": 0,
+        "maximumSettledCycles": 2,
+        "fixedEntries": "25",
+        "multiplierNumerator": 1,
+        "multiplierDenominator": 1
+      },
+      {
+        "planProductSlug": "basecamp-membership",
+        "minimumSettledCycles": 3,
+        "maximumSettledCycles": 5,
+        "fixedEntries": "30",
+        "multiplierNumerator": 1,
+        "multiplierDenominator": 1
+      },
+      {
+        "planProductSlug": "basecamp-membership",
+        "minimumSettledCycles": 6,
+        "maximumSettledCycles": null,
+        "fixedEntries": "40",
+        "multiplierNumerator": 1,
+        "multiplierDenominator": 1
+      }
+    ],
+    "operationalApprovals": [
+      {
+        "kind": "LEGAL_RULES",
+        "evidenceRef": "demo://approvals/legal-rules-v2",
+        "notes": "Demonstration only: counsel reviewed the exact Official Rules and campaign release checksums."
+      },
+      {
+        "kind": "PRIZE_FUNDING",
+        "evidenceRef": "demo://approvals/prize-funding",
+        "notes": "Demonstration only: the sponsor documented prize ownership, valuation, funding, and fulfillment capacity."
+      },
+      {
+        "kind": "AMOE_PARITY",
+        "evidenceRef": "demo://approvals/amoe-parity",
+        "notes": "Demonstration only: the no-purchase method, burden, timing, cap, and earning math were reviewed."
+      },
+      {
+        "kind": "DRAW_PROCEDURE",
+        "evidenceRef": "demo://approvals/draw-procedure",
+        "notes": "Demonstration only: the snapshot, custody, random selection, alternate, and verification procedure were reviewed."
+      },
+      {
+        "kind": "ACCESSIBILITY",
+        "evidenceRef": "demo://approvals/accessibility",
+        "notes": "Demonstration only: the participant journey was reviewed against the campaign accessibility target."
+      }
+    ],
+    "filingDetermination": {
+      "mode": "REQUIREMENTS",
+      "requirements": [
+        {
+          "jurisdiction": "FL",
+          "kind": "REGISTRATION_AND_BOND",
+          "triggerReason": "The announced prize value requires a counsel-confirmed Florida registration and security review.",
+          "dueAt": "2027-05-24T17:00:00-04:00",
+          "status": "COMPLETED",
+          "evidenceRef": "demo://filings/fl-registration-receipt",
+          "waiverRationale": null,
+          "completedAt": "2027-05-20T12:00:00-04:00"
+        },
+        {
+          "jurisdiction": "NY",
+          "kind": "REGISTRATION_AND_BOND",
+          "triggerReason": "The announced prize value requires a counsel-confirmed New York registration and security review.",
+          "dueAt": "2027-05-02T17:00:00-04:00",
+          "status": "COMPLETED",
+          "evidenceRef": "demo://filings/ny-registration-receipt",
+          "waiverRationale": null,
+          "completedAt": "2027-04-28T12:00:00-04:00"
+        },
+        {
+          "jurisdiction": "RI",
+          "kind": "RETAIL_GAME_FILING_REVIEW",
+          "triggerReason": "Counsel reviewed whether the promotion and sponsor activity fall within the retail-establishment filing rule.",
+          "dueAt": null,
+          "status": "NOT_APPLICABLE",
+          "evidenceRef": "demo://filings/ri-counsel-memo",
+          "waiverRationale": "Demonstration determination only; production counsel must confirm the sponsor has no covered Rhode Island retail-establishment promotion.",
+          "completedAt": "2027-05-20T12:00:00-04:00"
+        }
+      ]
+    }
+  }
+}

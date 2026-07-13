@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "tenant": {
+    "slug": "acme-adventures",
+    "displayName": "Acme Adventures",
+    "legalName": "Acme Adventures LLC",
+    "supportEmail": "support@acme.example",
+    "primaryDomain": "giveaway.acme.example",
+    "currency": "USD",
+    "timezone": "America/New_York"
+  },
+  "initialStaff": {
+    "administrator": {
+      "name": "Alex Administrator",
+      "email": "admin@acme.example",
+      "mailboxVerification": {
+        "verifiedAt": "2026-07-01T14:00:00Z",
+        "evidenceRef": "mailbox-proof://acme/admin-2026-07"
+      }
+    },
+    "compliance": {
+      "name": "Casey Compliance",
+      "email": "compliance@acme.example",
+      "mailboxVerification": {
+        "verifiedAt": "2026-07-01T14:30:00Z",
+        "evidenceRef": "mailbox-proof://acme/compliance-2026-07"
+      }
+    }
+  }
+}
